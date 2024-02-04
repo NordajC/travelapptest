@@ -1,0 +1,9 @@
+flutter_native_splash:
+  color: "#ffffff"
+  image: ./assets/bond.png
+
+android:
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: ./assets/bond.png
+
+web: false
