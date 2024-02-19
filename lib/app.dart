@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:travelapptest/bindings/general_bindings.dart';
 import 'package:travelapptest/onboarding_screen.dart';
 import 'package:get/get.dart'; // Ensure you've imported GetX
 
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp( // Use GetMaterialApp here
       title: 'Flutter Demo',
+      initialBinding: GeneralBindings(), // Add the GeneralBindings here
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
