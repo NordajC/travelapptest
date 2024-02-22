@@ -117,4 +117,21 @@ class AuthenticationRepository extends GetxController{
     }
   }
 
+  //login with email and password
+  Future<UserCredential> loginWithEmailAndPassword(String email, String password) async {
+    try {
+      return await _auth.signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase-specific errors
+      if (kDebugMode) {
+        print("FirebaseAuthException caught: ${e.code}");
+      }
+      String errorMessage = _handleFirebaseAuthError(e.code);
+      throw errorMessage;
+    } catch (e) {
+      // Handle any other errors
+      throw 'An unexpected error occurred. Please try again.';
+    }
+  }
+
 }

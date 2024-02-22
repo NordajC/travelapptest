@@ -160,10 +160,10 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(
+          padding: const EdgeInsets.only(
             top: 56.0,
             left: 24.0,
             bottom: 24.0,
@@ -172,19 +172,19 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             children: [
               // logo, title, sub title
-              LoginHeader(),
+              const LoginHeader(),
               // Login form
               LoginForm(),
 
               // Divider
-              FormDivider(),
+              const FormDivider(),
 
-              SizedBox(
+              const SizedBox(
                 height: 16.0,
               ),
 
               // Sign in with Google button
-              SocialButtons(),
+              const SocialButtons(),
             ],
           ),
           // ],

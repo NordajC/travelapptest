@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:travelapptest/bindings/general_bindings.dart';
 import 'package:travelapptest/onboarding_screen.dart';
 import 'package:get/get.dart'; // Ensure you've imported GetX
+import 'package:google_fonts/google_fonts.dart';
+
 
 // class MyApp extends StatelessWidget {
 //   // Create a future for initializing Firebase
@@ -57,6 +59,9 @@ class MyApp extends StatelessWidget {
       initialBinding: GeneralBindings(), // Add the GeneralBindings here
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        textTheme: GoogleFonts.latoTextTheme(
+          Theme.of(context).textTheme,
+        ),
       ),
       home: const Scaffold(
         backgroundColor: Colors.lightBlue,

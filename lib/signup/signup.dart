@@ -16,13 +16,16 @@ class SignupScreen extends StatelessWidget {
             children: [
               // logo, title, sub title
               // LoginHeader(),
-              const Text(
-                'Register an Account',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Register an Account',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 80, 80, 80)),
+                ),
               ),
 
               const SizedBox(
-                height: 8.0,
+                height: 32.0,
               ),
 
               const SignupForm(),

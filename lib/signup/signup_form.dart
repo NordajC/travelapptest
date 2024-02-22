@@ -24,9 +24,13 @@ class SignupForm extends StatelessWidget {
                   controller: controller.firstName,
                   expands: false,
                   validator: (value) => inputValidator.validateEmpty('First name',value),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     // icon: Icon(Icons.person),
                     labelText: 'First Name',
+                    prefixIcon: const Icon(CupertinoIcons.person),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
                 ),
               ),
@@ -38,9 +42,13 @@ class SignupForm extends StatelessWidget {
                   expands: false,
                   validator: (value) => inputValidator.validateEmpty('Last name',value),
                   controller: controller.lastName,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     // icon: Icon(Icons.person),
                     labelText: 'Last Name',
+                    prefixIcon: const Icon(CupertinoIcons.person),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
                 ),
               ),
@@ -56,9 +64,13 @@ class SignupForm extends StatelessWidget {
             expands: false,
             controller: controller.username,
             validator: (value) => inputValidator.validateEmpty('Username',value),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               // icon: Icon(Icons.person)
               labelText: 'Username',
+              prefixIcon: const Icon(CupertinoIcons.person),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
           ),
 
@@ -71,9 +83,13 @@ class SignupForm extends StatelessWidget {
             expands: false,
             controller: controller.email,
             validator: (value) => inputValidator.validateEmail(value),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               // icon: Icon(Icons.email),
               labelText: 'Email',
+              prefixIcon: const Icon(CupertinoIcons.mail),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
           ),
 
@@ -86,9 +102,13 @@ class SignupForm extends StatelessWidget {
             validator: (value) => inputValidator.phoneNumberValidator(value),
             expands: false,
             controller: controller.phoneNumber,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               // icon: Icon(Icons.lock),
               labelText: 'Phone Number',
+              prefixIcon: Icon(CupertinoIcons.phone),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
           ),
 
@@ -111,6 +131,9 @@ class SignupForm extends StatelessWidget {
                     icon: Icon(controller.hidePassword.value ? CupertinoIcons.eye_slash: CupertinoIcons.eye),
                   ),
                 prefixIcon: const Icon(CupertinoIcons.lock),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
               ),
             ),
           ),

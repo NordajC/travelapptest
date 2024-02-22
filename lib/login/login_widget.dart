@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:travelapptest/login/login_controller.dart';
 import 'package:travelapptest/signup/signup.dart';
+import 'package:travelapptest/validation/validation.dart';
 
 class LoginHeader extends StatelessWidget {
   const LoginHeader({
@@ -20,21 +22,23 @@ class LoginHeader extends StatelessWidget {
             fontSize: 26.0,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.25,
+            color: Color.fromARGB(255, 80, 80, 80),
           ),
         ),
-    
+
         // Space between heading and subheading
         SizedBox(
           height: 8.0,
         ),
-    
+
         // Subheading
         Text(
           'Access your itineraries, saved places, and travel plans. Connect with fellow travelers and share your experiences.',
           style: TextStyle(
             fontSize: 16.0,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w300,
             letterSpacing: 0.10,
+            color: Color.fromARGB(255, 125, 125, 125),
           ),
         ),
       ],
@@ -43,91 +47,111 @@ class LoginHeader extends StatelessWidget {
 }
 
 class LoginForm extends StatelessWidget {
-  const LoginForm({
+  LoginForm({
     super.key,
   });
+
+  final controller = Get.put(LoginController());
 
   @override
   Widget build(BuildContext context) {
     return Form(
+      key: controller.loginFormKey,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32.0),
+        padding: const EdgeInsets.symmetric(vertical: 64.0),
         child: Column(
           children: [
             // Email input
             TextFormField(
+              controller: controller.email,
+              validator: (value) => inputValidator.validateEmail(value),
               decoration: InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
+                prefixIcon: const Icon(CupertinoIcons.mail),
               ),
             ),
-    
+
             // Space between inputs
             const SizedBox(
-              height: 8,
+              height: 16.0,
             ),
-    
-            // Password input
-            TextFormField(
-              obscureText: true, // Hides the password
-              decoration: InputDecoration(
+
+            //Password
+            Obx(
+              () => TextFormField(
+                controller: controller.password,
+                expands: false,
+                obscureText: controller.hidePassword.value,
+                validator: (value) => inputValidator.passwordValidator(value),
+                decoration: InputDecoration(
+                  // icon: Icon(Icons.lock),
                   labelText: 'Password',
-                  suffixIcon: const Icon(CupertinoIcons.eye_slash),
+                  suffixIcon: IconButton(
+                    onPressed: () => controller.hidePassword.value =
+                        !controller.hidePassword.value,
+                    icon: Icon(controller.hidePassword.value
+                        ? CupertinoIcons.eye_slash
+                        : CupertinoIcons.eye),
+                  ),
+                  prefixIcon: const Icon(CupertinoIcons.lock),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                  )),
+                  ),
+                ),
+              ),
             ),
-    
+
             const SizedBox(
               height: 8.0,
             ),
-    
+
             // Remember me and forgot password
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Remember me
                 Row(
                   children: [
-                    Checkbox(
-                      value: true,
-                      onChanged: null, // Checkbox is disabled
+                    Obx(
+                      () => Checkbox(
+                        value: controller.rememberMe.value,
+                        onChanged: (value) => {controller.rememberMe.value = !controller.rememberMe.value}, // Checkbox is disabled
+                      ),
                     ),
-                    Text('Remember me'),
+                    const Text('Remember me'),
                   ],
                 ),
-    
+
                 // Forget password
-                TextButton(
+                const TextButton(
                     onPressed: null, // Disable the button
                     child: Text('Forget Password')),
               ],
             ),
-    
+
             const SizedBox(
               height: 16.0,
             ),
-    
+
             // Sign in button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () => controller.emailAndPasswordSignIn(),
                 style: ElevatedButton.styleFrom(
-                  primary:
-                      Theme.of(context).primaryColor, // Button color
+                  primary: Theme.of(context).primaryColor, // Button color
                   onPrimary: Colors.white, // Text color
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(8.0), // Rounded edges
+                    borderRadius: BorderRadius.circular(8.0), // Rounded edges
                   ),
                 ),
                 child: const Text('Sign In'),
               ),
             ),
-    
+
             const SizedBox(
               height: 16.0,
             ),
@@ -138,20 +162,18 @@ class LoginForm extends StatelessWidget {
                 onPressed: () => Get.to(() => const SignupScreen()),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor:
-                      Theme.of(context).primaryColor, // Text color
+                  backgroundColor: Theme.of(context).primaryColor, // Text color
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(8.0), // Rounded edges
+                    borderRadius: BorderRadius.circular(8.0), // Rounded edges
                   ),
                 ),
                 child: const Text('Create Account'),
               ),
             ),
-    
-            const SizedBox(
-              height: 8.0,
-            ),
+
+            // const SizedBox(
+            //   height: 8.0,
+            // ),
           ],
         ),
       ),
