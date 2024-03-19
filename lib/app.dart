@@ -51,24 +51,75 @@ import 'package:google_fonts/google_fonts.dart';
 //   }
 // }
 
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return GetMaterialApp( // Use GetMaterialApp here
+//       title: 'Flutter Demo',
+//       initialBinding: GeneralBindings(), // Add the GeneralBindings here
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//         textTheme: GoogleFonts.latoTextTheme(
+//           Theme.of(context).textTheme,
+//         ),
+//       ),
+      
+//       home: const Scaffold(
+//         backgroundColor: Colors.lightBlue,
+//         body: Center(
+//           child: CircularProgressIndicator(
+//             color: Colors.white,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp( // Use GetMaterialApp here
+    return GetMaterialApp(
       title: 'Flutter Demo',
-      initialBinding: GeneralBindings(), // Add the GeneralBindings here
+      initialBinding: GeneralBindings(),
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        // Neutral colors for a less tinted effect
+        primarySwatch: Colors.grey,
+        primaryColor: Colors.grey[200], // Neutral grey shade
+
+        scaffoldBackgroundColor: const Color(0xFFFFFAFA),
+
         textTheme: GoogleFonts.latoTextTheme(
-          Theme.of(context).textTheme,
+          ThemeData(
+            brightness: Brightness.light,
+            primaryColor: const Color(0xFF313131),
+          ).textTheme.apply(
+            bodyColor: const Color(0xFF313131),
+            displayColor: const Color(0xFF313131),
+          ),
+        ).copyWith(
+          displayLarge: GoogleFonts.lato(color: const Color(0xFF616161)),
+          displayMedium: GoogleFonts.lato(color: const Color(0xFF616161)),
+          bodyLarge: GoogleFonts.lato(color: const Color(0xFF919191)),
+          bodyMedium: GoogleFonts.lato(color: const Color(0xFF919191)),
+          bodySmall: GoogleFonts.lato(color: const Color(0xFFC2C2C2)),
+        ),
+
+        disabledColor: const Color(0xFFC2C2C2),
+        hintColor: const Color(0xFF616161),
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: TextStyle(color: const Color(0xFF616161)),
+          hintStyle: TextStyle(color: const Color(0xFF616161)),
+        ),
+
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: Colors.grey[200],
         ),
       ),
       home: const Scaffold(
-        backgroundColor: Colors.lightBlue,
         body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
-          ),
+          child: CircularProgressIndicator(),
         ),
       ),
     );

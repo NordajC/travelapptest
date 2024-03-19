@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:travelapptest/login/forget_password.dart';
+import 'package:travelapptest/login/forget_password_controller.dart';
 import 'package:travelapptest/login/login_controller.dart';
 import 'package:travelapptest/signup/signup.dart';
 import 'package:travelapptest/validation/validation.dart';
@@ -126,8 +128,8 @@ class LoginForm extends StatelessWidget {
                 ),
 
                 // Forget password
-                const TextButton(
-                    onPressed: null, // Disable the button
+                TextButton(
+                    onPressed: () => Get.to(() => const ForgetPassword()), // Disable the button
                     child: Text('Forget Password')),
               ],
             ),
@@ -228,10 +230,12 @@ class SocialButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(LoginController());
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () => controller.googleSignIn(),
         style: ElevatedButton.styleFrom(
           primary: Colors.red, // Button color
           onPrimary: Colors.white, // Text color

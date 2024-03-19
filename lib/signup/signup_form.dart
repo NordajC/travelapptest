@@ -161,11 +161,11 @@ class SignupForm extends StatelessWidget {
               const Text.rich(TextSpan(children: [
                 TextSpan(text: 'I agree to the '),
                 TextSpan(
-                    text: 'Terms and Conditions',
+                    text: 'Terms and Conditions.',
                     style: TextStyle(color: Colors.blue)),
-                TextSpan(text: ' and '),
-                TextSpan(
-                    text: 'Privacy Policy', style: TextStyle(color: Colors.blue)),
+                // TextSpan(text: ' and '),
+                // TextSpan(
+                //     text: 'Privacy Policy', style: TextStyle(color: Colors.blue)),
               ]))
             ],
           ),
