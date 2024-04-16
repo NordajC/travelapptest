@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:travelapptest/trip/trip_controller.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'package:travelapptest/onboarding_screen.dart';
@@ -11,7 +12,7 @@ import 'package:travelapptest/authentication_repository.dart';
 Future <void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-
+  // TripBinding().dependencies();
   await GetStorage.init();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);

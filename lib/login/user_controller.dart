@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:travelapptest/pop_up_loaders/full_screen_loader.dart';
 import 'package:travelapptest/user/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:travelapptest/user/user_repository.dart';
 import 'package:file_picker/file_picker.dart';
+
+
 
 class UserController extends GetxController {
   static UserController get instance => Get.find();

@@ -11,12 +11,11 @@ import 'package:travelapptest/login/user_controller.dart';
 import 'package:travelapptest/onboarding_screen.dart';
 import 'package:travelapptest/signup/sucess_screen.dart';
 import 'package:travelapptest/signup/verify_email.dart';
+import 'package:travelapptest/trip/trip_controller.dart';
 import 'firebase_options.dart';
 import 'package:travelapptest/login/login.dart';
 
-
-class AuthenticationRepository extends GetxController{
-
+class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
 
   final deviceStorage = GetStorage();
@@ -31,35 +30,38 @@ class AuthenticationRepository extends GetxController{
     screenRedirect();
   }
 
-  screenRedirect() async{
+  screenRedirect() async {
     final user = _auth.currentUser;
 
-    if(user != null){
+    if (user != null) {
       //if email verified send to home/navigation menu
-      if(user.emailVerified){
-        Get.offAll(() => HomePage());
-      }else{
+      if (user.emailVerified) {
+        Get.offAll(() => HomePage(), binding: TripBinding());
+      } else {
         Get.offAll(() => VerifyEmailScreen(email: _auth.currentUser?.email));
       }
-    }else{
+    } else {
       //if user is null send to login screen
 
       //debugging purposes
-      if(kDebugMode){
+      if (kDebugMode) {
         print("================ GetStorage ================");
         print(deviceStorage.read('isFirstTime'));
       }
 
       deviceStorage.writeIfNull('isFirstTime', true);
-      deviceStorage.read('isFirstTime') != true ? Get.offAll(() =>  LoginScreen()) : Get.offAll( OnboardingScreen());
-      }
+      deviceStorage.read('isFirstTime') != true
+          ? Get.offAll(() => LoginScreen())
+          : Get.offAll(OnboardingScreen());
+    }
   }
 
-
   //register with email and password
-  Future<UserCredential> registerWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential> registerWithEmailAndPassword(
+      String email, String password) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      return await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
     } on FirebaseAuthException catch (e) {
       // Handle Firebase-specific errors
       if (kDebugMode) {
@@ -71,7 +73,6 @@ class AuthenticationRepository extends GetxController{
       // Handle any other errors
       throw 'An unexpected error occurred. Please try again.';
     }
-
   }
 
   String _handleFirebaseAuthError(String errorCode) {
@@ -110,7 +111,7 @@ class AuthenticationRepository extends GetxController{
       await GoogleSignIn().signOut();
       await FirebaseAuth.instance.signOut();
       Get.offAll(() => const LoginScreen());
-    }on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       // Handle Firebase-specific errors
       if (kDebugMode) {
         print("FirebaseAuthException caught: ${e.code}");
@@ -124,9 +125,11 @@ class AuthenticationRepository extends GetxController{
   }
 
   //login with email and password
-  Future<UserCredential> loginWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential> loginWithEmailAndPassword(
+      String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
     } on FirebaseAuthException catch (e) {
       // Handle Firebase-specific errors
       if (kDebugMode) {
@@ -142,13 +145,14 @@ class AuthenticationRepository extends GetxController{
 
   //sign in with google
 
-    Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle() async {
     try {
       // Trigger the Google Sign In process
       final GoogleSignInAccount? userAccount = await GoogleSignIn().signIn();
 
       // get details from the request
-      final GoogleSignInAuthentication? googleAuth = await userAccount?.authentication;
+      final GoogleSignInAuthentication? googleAuth =
+          await userAccount?.authentication;
 
       // Create credentials
 
@@ -159,14 +163,14 @@ class AuthenticationRepository extends GetxController{
 
       // pass the credentials to Firebase
       return await _auth.signInWithCredential(credentials);
-
     } on FirebaseAuthException catch (e) {
       // Handle Firebase-specific errors
       if (kDebugMode) {
         print("FirebaseAuthException caught: ${e.code}, Message: ${e.message}");
       }
       String errorMessage = _handleFirebaseAuthError(e.code);
-      throw Exception(errorMessage); // Wrap the error message in an Exception for consistent error handling
+      throw Exception(
+          errorMessage); // Wrap the error message in an Exception for consistent error handling
     } catch (e) {
       // Handle any other errors
       throw 'An unexpected error occurred. Please try again.';
@@ -174,7 +178,7 @@ class AuthenticationRepository extends GetxController{
   }
 
   // reset/forget password
-    Future<void> sendPasswordResetEmail(String email) async {
+  Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {

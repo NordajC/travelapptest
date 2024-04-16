@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:travelapptest/authentication_repository.dart';
 import 'package:travelapptest/design/custom_drawer.dart';
 import 'package:travelapptest/home/home_appbar.dart';
+import 'package:travelapptest/login/user_controller.dart';
+import 'package:travelapptest/trip/create_trip_form.dart';
+import 'package:travelapptest/trip/edit_trip_form.dart';
+import 'package:travelapptest/trip/trip_controller.dart';
+import 'package:travelapptest/trip/trip_model.dart';
+import 'package:travelapptest/trip/trip_page.dart';
+import 'package:travelapptest/trip/trip_repository.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(AuthenticationRepository());
+
+    final TripController tripController = Get.find();
+    tripController.loadUserTrips();
 
     return Scaffold(
       appBar: HomeAppBar(),
@@ -42,19 +53,44 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-       body: ListView(
-        children: [
-          TravelCard(
-            tripName: 'Paris, France',
-            tripDate: 'April 10 - 15, 2023',
-            tripPrice: 'Est. \$1200',
-          ),
-          // Add more TravelCard widgets as needed
-        ],
-      ),
+      body: Obx(() {
+        // React to changes in the trip list.
+        if (tripController.trips.isEmpty) {
+          return Center(child: Text('No trips found.'));
+        }
+
+        return ListView.builder(
+          itemCount: tripController.trips.length,
+          itemBuilder: (context, index) {
+            final trip = tripController.trips[index];
+            return GestureDetector(
+              onTap: () {
+                print('Trip selected: ${trip.destination}');
+                // Implement navigation to the trip details screen
+                Get.to(() => TripDetailsPage(trip: trip));
+              },
+              child: TravelCard(
+                tripId: trip.id,
+                tripName: trip.destination,
+                tripStartDate: DateFormat('yyyy-MM-dd').format(trip.startDate),
+                tripEndDate: DateFormat('yyyy-MM-dd').format(trip.endDate),
+                tripBudget: trip.participantBudgets
+                    .firstWhere(
+                        (budget) => budget.participantId == trip.creatorId,
+                        orElse: () =>
+                            ParticipantBudget(participantId: '', budget: 0))
+                    .budget,
+                tripSpent: 0, // Implement logic to calculate amount spent
+                // tripImageUrl: trip.imageUrl, // If you have images for trips
+              ),
+            );
+          },
+        );
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Implement action to add more trips
+          Get.to(() => CreateTripForm(), binding: TripBinding());
         },
         tooltip: 'Add Trip',
         child: const Icon(Icons.add),
@@ -65,22 +101,33 @@ class HomePage extends StatelessWidget {
 
 class TravelCard extends StatelessWidget {
   final String tripName;
-  final String tripDate;
-  final String tripPrice;
+  final String tripStartDate;
+  final String tripEndDate;
+  final double tripBudget; // Assuming this is the total budget
+  final double tripSpent; // Assuming this is the amount spent from the budget
   final String tripImageUrl;
   // Include additional fields if necessary, like an image path or a unique tag for Hero animations
+  final String tripId;
 
   const TravelCard({
     super.key,
     required this.tripName,
-    required this.tripDate,
-    required this.tripPrice,
+    required this.tripStartDate,
+    required this.tripEndDate,
+    required this.tripBudget,
+    required this.tripSpent,
+    required this.tripId,
     this.tripImageUrl = '', // Change this later on to the actual image path
     // Additional parameters can be added here
   });
 
   @override
   Widget build(BuildContext context) {
+    double spentPercentage = (tripSpent / tripBudget)
+        .clamp(0.0, 1.0); // Ensure the value is between 0 and 1
+
+    final TripController tripController = Get.find();
+
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(32, 32, 32, 16),
       child: Container(
@@ -90,10 +137,10 @@ class TravelCard extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              blurRadius: 6,
+              blurRadius: 1,
               color: Colors.black.withOpacity(0.1),
-              offset: Offset(0, 2),
-            )
+              offset: Offset(0, 0),
+            ),
           ],
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
@@ -107,7 +154,7 @@ class TravelCard extends StatelessWidget {
             Expanded(
               child: Stack(
                 children: [
-                  // Image and title row
+                  // Image placeholder
                   Container(
                     width: double.infinity,
                     height: 150,
@@ -128,22 +175,60 @@ class TravelCard extends StatelessWidget {
                           topLeft: Radius.circular(12),
                           topRight: Radius.circular(12),
                         ),
-                        child: Image.asset(
-                          'path/to/trip/image',
+                        child: Image.network(
+                          tripImageUrl,
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
                     */
                   ),
+                  // Popup menu
                   Positioned(
                     top: 10,
                     right: 10,
                     child: PopupMenuButton<String>(
                       onSelected: (String result) {
                         // Handle your action selection here
+                        if (result == 'Edit') {
+                          // Implement the edit action
+                          print("edit " + tripId);
+                          Get.to(() => EditTripForm(tripId: tripId));
+                        } else if (result == 'Delete') {
+                          // Implement the delete action
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                  title: Text('Delete Trip'),
+                                  content: Text(
+                                      'Are you sure you want to delete this trip?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        // Implement the delete action
+                                        Navigator.of(context).pop();
+                                        print("delete " + tripId);
+                                        tripController.deleteTrip(tripId);
+                                      },
+                                      child: Text('Delete'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('Cancel'),
+                                    ),
+                                  ],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ));
+                            },
+                          );
+                        }
                       },
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
                         const PopupMenuItem<String>(
                           value: 'Edit',
                           child: Text('Edit'),
@@ -161,46 +246,49 @@ class TravelCard extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tripName,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                          child: Text(tripDate),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: AlignmentDirectional(0, 0),
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(4, 0, 4, 0),
-                      child: Text(
-                        tripPrice,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        tripName,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
+                      Text(
+                        '$tripStartDate - $tripEndDate',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4), // Adds a small space between elements
+
+                  // Budget progress bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    child: LinearProgressIndicator(
+                      value: spentPercentage,
+                      minHeight: 10,
+                      backgroundColor: Colors.grey[300],
+                      color: spentPercentage < 1.0
+                          ? Colors.blue
+                          : Colors.red, // Change color if over budget
+                    ),
+                  ),
+                  SizedBox(height: 8), // Adds a small space between elements
+                  Text(
+                    'Spent: \$${tripSpent.toStringAsFixed(2)} / \$${tripBudget.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
                     ),
                   ),
                 ],

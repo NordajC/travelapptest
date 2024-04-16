@@ -22,6 +22,7 @@ class ChangeName extends StatelessWidget {
         padding: const EdgeInsets.all(28.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text("This name will appear on multiple pages."),
 

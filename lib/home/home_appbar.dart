@@ -14,8 +14,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget{
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-            Text('Plan Your Next Trip', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Color(0xFF313131)),),
-            Obx(() => Text(controller.user.value.fullName, style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Color(0xFF313131)))),
+            // Text('Plan Your Next Trip', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Color(0xFF313131)),),
+            // Obx(() => Text(controller.user.value.fullName, style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Color(0xFF313131)))),
+            Text('NexTrip', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Color(0xFF313131)),),
           ],
         ),
       actions: [],
