@@ -72,4 +72,66 @@ class TripRepository extends GetxService {
           'Error fetching trip: $e'); // Optionally rethrow to handle it further up the call stack
     }
   }
+
+  // Method to save or update a daily itinerary
+  Future<void> saveDailyItinerary(
+      String tripId, DailyItinerary itinerary) async {
+    DocumentReference ref = _db
+        .collection('Trips')
+        .doc(tripId)
+        .collection('DailyItineraries')
+        .doc(itinerary.date.toIso8601String());
+    await ref.set(itinerary.toJson(), SetOptions(merge: true));
+  }
+
+  // Method to fetch all itineraries for a trip
+  Future<List<DailyItinerary>> fetchDailyItineraries(String tripId) async {
+    QuerySnapshot snapshot = await _db
+        .collection('Trips')
+        .doc(tripId)
+        .collection('DailyItineraries')
+        .get();
+    return snapshot.docs
+        .map((doc) =>
+            DailyItinerary.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
+  }
+
+  // Method to delete a daily itinerary
+  Future<void> deleteDailyItinerary(String tripId, DateTime date) async {
+    await _db
+        .collection('Trips')
+        .doc(tripId)
+        .collection('DailyItineraries')
+        .doc(date.toIso8601String())
+        .delete();
+  }
+
+// Method to update itineraries in the repository
+  Future<void> updateItineraries(
+      String tripId,
+      List<DailyItinerary> updatedItineraries,
+      List<DailyItinerary> originalItineraries) async {
+    // Create a map from the original itineraries for quick lookup
+    Map<String, DailyItinerary> originalMap = {
+      for (var itin in originalItineraries) itin.date.toIso8601String(): itin
+    };
+
+    // Set for fast checks on existence in the updated list
+    Set<String> updatedDates = {
+      for (var itin in updatedItineraries) itin.date.toIso8601String()
+    };
+
+    // Handle deletions for itineraries not present in the updated list
+    for (var original in originalItineraries) {
+      if (!updatedDates.contains(original.date.toIso8601String())) {
+        await deleteDailyItinerary(tripId, original.date);
+      }
+    }
+
+    // Handle additions or updates
+    for (var updated in updatedItineraries) {
+      await saveDailyItinerary(tripId, updated);
+    }
+  }
 }

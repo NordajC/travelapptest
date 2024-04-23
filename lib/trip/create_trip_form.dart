@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:travelapptest/trip/trip_controller.dart';
+import 'package:travelapptest/api_services/here_places_api_call.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class CreateTripForm extends StatelessWidget {
-  const CreateTripForm({Key? key}) : super(key: key);  
+  const CreateTripForm({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final TripController controller = Get.find<TripController>();
+
+    final OpenCageService _placesService = OpenCageService();
+
+    TextEditingController destinationController = TextEditingController();
 
     void _selectDateRange(BuildContext context) async {
       final DateTimeRange? picked = await showDateRangePicker(
@@ -38,18 +44,96 @@ class CreateTripForm extends StatelessWidget {
           key: controller.tripFormKey,
           child: Column(
             children: [
-              TextFormField(
+              // TextFormField(
+              //   controller: controller.destination,
+              //   decoration: InputDecoration(
+              //     labelText: 'Destination',
+              //     prefixIcon: const Icon(CupertinoIcons.map_pin_ellipse),
+              //     border: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(8.0)),
+              //   ),
+              //   validator: (value) => value == null || value.trim().isEmpty
+              //       ? 'Please enter a destination'
+              //       : null,
+              // ),
+
+              // TypeAheadField(itemBuilder: (context, suggestion) {
+              //     return ListTile(
+              //       title: Text(suggestion
+              //           .toString()), // Make sure suggestion is converted to String if necessary
+              //     );
+              //   }, onSelected: (suggestion) {
+              //     controller.destination.text = suggestion.toString();
+              //   }, suggestionsCallback: (pattern) async {
+              //     return await _placesService.getSuggestions(pattern);
+              //   }
+              // ),
+  
+              // TypeAheadField<String>(
+              //   suggestionsCallback: (pattern) async {
+              //     return await _placesService.getSuggestions(pattern);
+              //   },
+              //   itemBuilder: (context, suggestion) {
+              //     return ListTile(
+              //       title: Text(suggestion.toString()), // Assuming the suggestion is a string.
+              //     );
+              //   },
+              //   onSelected: (suggestion) {
+              //     controller.destination.text = suggestion.toString(); // Update the controller on selection
+              //     print(controller.destination.text);
+              //   },
+              //   builder: (context, controller, focusNode) {
+              //     return TextFormField(
+              //       controller: controller, // This controller comes from the TypeAheadField builder
+              //       focusNode: focusNode,
+              //       decoration: InputDecoration(
+              //         labelText: 'Destination',
+              //         prefixIcon: const Icon(CupertinoIcons.map_pin_ellipse),
+              //         border: OutlineInputBorder(
+              //           borderRadius: BorderRadius.circular(8.0),
+              //         ),
+              //       ),
+              //       validator: (value) {
+              //         if (value == null || value.trim().isEmpty) {
+              //           return 'Please enter a destination';
+              //         }
+              //         return null; // Return null if the input is valid
+              //       },
+              //     );
+              //   },
+              // ),
+              
+              TypeAheadField<String>(
+
+                // The controller for the destination
                 controller: controller.destination,
-                decoration: InputDecoration(
-                  labelText: 'Destination',
-                  prefixIcon: const Icon(CupertinoIcons.map_pin_ellipse),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0)),
-                ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Please enter a destination'
-                    : null,
+
+                suggestionsCallback: (pattern) async {
+                  return await OpenCageService().getSuggestions(pattern);
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    title: Text(suggestion.toString()),
+                  );
+                },
+                onSelected: (suggestion) {
+                  // Using this setup, the text is updated correctly in the builder below
+                  controller.destination.text = suggestion.toString();
+                },
+                builder: (context, controller, focusNode) {
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Destination',
+                      prefixIcon: const Icon(Icons.location_on),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                    ),
+                    // No need for onChanged; the controller setup handles updates
+                  );
+                },
               ),
+
               const SizedBox(height: 16.0),
               TextFormField(
                 controller:

@@ -101,21 +101,13 @@
 //   // Additional methods for updating trips, managing participants, etc., can be added here...
 // }
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travelapptest/login/user_controller.dart';
 import 'package:travelapptest/trip/trip_model.dart';
 import 'package:travelapptest/trip/trip_repository.dart';
-
-// class TripBinding extends Bindings {
-//   @override
-//   void dependencies() {
-//     Get.lazyPut<TripRepository>(() => TripRepository()); // This ensures TripRepository is registered
-//     Get.lazyPut<UserController>(() => UserController(), fenix: true); // fenix ensures UserController is only created if it is not already available.
-//     Get.lazyPut<TripController>(() => TripController(tripRepository: Get.find(), userController: Get.find()));
-//   }
-// }
 
 class TripBinding extends Bindings {
   @override
@@ -142,6 +134,9 @@ class TripController extends GetxController {
 
   var trips = <TravelPlanModel>[].obs;
 
+    final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+
   TripController({
     required this.tripRepository,
     required this.userController,
@@ -158,46 +153,53 @@ class TripController extends GetxController {
     });
   }
 
-  Future<void> createTrip() async {
-    String creatorId = userController.user.value.id;
-    // Assuming the budget text field in the form collects the budget for the trip creator
-    double creatorBudgetValue = double.tryParse(budget.text) ?? 0.0;
+Future<void> createTrip() async {
+  String creatorId = userController.user.value.id;
+  double creatorBudgetValue = double.tryParse(budget.text) ?? 0.0;
+  String destinationValue = destination.text;
+  DateTime startDateValue = DateTime.parse(startDate.text);
+  DateTime endDateValue = DateTime.parse(endDate.text);
+  String descriptionValue = description.text;
 
-    // Use the .text property of each TextEditingController to access the form field values
-    String destinationValue = destination.text;
-    DateTime startDateValue = DateTime.parse(
-        startDate.text); // Make sure this matches your date format
-    DateTime endDateValue = DateTime.parse(endDate.text);
-    String descriptionValue = description.text;
+  // Create a new ID if it's a new trip or use an existing ID
+  String tripId = _db.collection('Trips').doc().id;
 
-    TravelPlanModel newTrip = TravelPlanModel(
-      id: '', // Empty for Firestore to auto-generate an ID
-      creatorId: creatorId,
-      destination: destinationValue,
-      startDate: startDateValue,
-      endDate: endDateValue,
-      participantIds: [
-        creatorId
-      ], // Initially, only the creator is a participant
-      participantBudgets: [
-        ParticipantBudget(participantId: creatorId, budget: creatorBudgetValue)
-      ], // Setting the budget for the creator
-      description: descriptionValue,
-    );
+  List<DailyItinerary> dailyItineraries = List.generate(
+    endDateValue.difference(startDateValue).inDays + 1,
+    (index) => DailyItinerary(
+      date: startDateValue.add(Duration(days: index)),
+      items: [],
+    ),
+  );
 
-    try {
-      await tripRepository.saveTripRecord(newTrip);
-      trips.add(newTrip); // Add the new trip to the observable list
-      Get.back(); // Navigate back to the previous screen
-      Get.snackbar("Success", "Trip created successfully",
-          backgroundColor: Colors.green, colorText: Colors.white);
-    } catch (e) {
-      Get.snackbar("Error", "Failed to create trip: $e",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+  TravelPlanModel newTrip = TravelPlanModel(
+    id: tripId,
+    creatorId: creatorId,
+    destination: destinationValue,
+    startDate: startDateValue,
+    endDate: endDateValue,
+    participantIds: [creatorId],
+    participantBudgets: [ParticipantBudget(participantId: creatorId, budget: creatorBudgetValue)],
+    description: descriptionValue,
+    dailyItineraries: dailyItineraries,
+  );
+
+  try {
+    await tripRepository.saveTripRecord(newTrip);
+    // Save each daily itinerary as a separate document in the sub-collection
+    for (DailyItinerary itinerary in dailyItineraries) {
+      await tripRepository.saveDailyItinerary(tripId, itinerary);
     }
+
+    trips.add(newTrip);
+    trips.refresh();
+    loadUserTrips();
+    Get.back();
+    Get.snackbar("Success", "Trip created successfully", backgroundColor: Colors.green, colorText: Colors.white);
+  } catch (e) {
+    Get.snackbar("Error", "Failed to create trip: $e", snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
   }
+}
 
   void loadUserTrips() async {
     String userId = userController.user.value.id;
@@ -230,25 +232,95 @@ class TripController extends GetxController {
     }
   }
 
-  void onEditSubmit(String tripId) {
-    TravelPlanModel updatedTrip = TravelPlanModel(
-      id: tripId, // Make sure to have this ID from the trip you're editing
-      creatorId: userController.user.value.id,
-      destination: destination.text,
-      startDate: DateTime.parse(startDate.text),
-      endDate: DateTime.parse(endDate.text),
-      participantIds: [
-        userController.user.value.id
-      ], // Depending on your model, adjust as necessary
-      participantBudgets: [
-        ParticipantBudget(
-            participantId: userController.user.value.id,
-            budget: double.parse(budget.text))
-      ],
-      description: description.text,
-    );
+  // void onEditSubmit(String tripId) {
+  //   TravelPlanModel updatedTrip = TravelPlanModel(
+  //     id: tripId, // Make sure to have this ID from the trip you're editing
+  //     creatorId: userController.user.value.id,
+  //     destination: destination.text,
+  //     startDate: DateTime.parse(startDate.text),
+  //     endDate: DateTime.parse(endDate.text),
+  //     participantIds: [
+  //       userController.user.value.id
+  //     ], // Depending on your model, adjust as necessary
+  //     participantBudgets: [
+  //       ParticipantBudget(
+  //           participantId: userController.user.value.id,
+  //           budget: double.parse(budget.text))
+  //     ],
+  //     description: description.text,
+  //   );
 
-    updateTrip(updatedTrip);
+  //   updateTrip(updatedTrip);
+  // }
+
+  void onEditSubmit(String tripId) async {
+    TravelPlanModel originalTrip = await fetchTripById(tripId);
+
+    DateTime newStartDate = DateTime.parse(startDate.text);
+    DateTime newEndDate = DateTime.parse(endDate.text);
+
+    if (newStartDate.isAfter(newEndDate)) {
+      Get.snackbar("Error", "Start date cannot be after end date",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    bool datesChanged = newStartDate != originalTrip.startDate ||
+        newEndDate != originalTrip.endDate;
+
+    if (datesChanged) {
+      bool userConfirmed = await showConfirmationDialog();
+      if (!userConfirmed) {
+        return; // Stop if user cancels the operation
+      }
+
+      // Generate updated itineraries
+      List<DailyItinerary> updatedDailyItineraries = List.generate(
+        newEndDate.difference(newStartDate).inDays + 1,
+        (index) => DailyItinerary(
+          date: newStartDate.add(Duration(days: index)),
+          items: originalTrip.dailyItineraries
+              .firstWhere(
+                  (itin) =>
+                      itin.date.toIso8601String() ==
+                      newStartDate.add(Duration(days: index)).toIso8601String(),
+                  orElse: () => DailyItinerary(
+                      date: newStartDate.add(Duration(days: index)), items: []))
+              .items,
+        ),
+      );
+
+      // Update itineraries in Firestore
+      await tripRepository.updateItineraries(
+          tripId, updatedDailyItineraries, originalTrip.dailyItineraries);
+
+      // Update the trip with new dates and possibly other modified fields
+      originalTrip.startDate = newStartDate;
+      originalTrip.endDate = newEndDate;
+      originalTrip.dailyItineraries = updatedDailyItineraries;
+      updateTrip(originalTrip);
+    }
+  }
+
+  Future<bool> showConfirmationDialog() async {
+    bool? result = await Get.dialog<bool>(AlertDialog(
+      title: Text("Confirm Changes"),
+      content: Text(
+          "Changing dates will modify the itinerary. Shortening the trip will result in deleting the itenraries of the missing days. Do you wish to continue?"),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(result: false), // User cancels the action
+          child: Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () => Get.back(result: true), // User confirms the action
+          child: Text("Continue"),
+        ),
+      ],
+    ));
+
+    // If the dialog is dismissed by tapping outside of it (result is null), treat it as a cancellation.
+    return result ?? false;
   }
 
   Future<void> updateTrip(TravelPlanModel updatedTrip) async {
@@ -257,7 +329,7 @@ class TripController extends GetxController {
       int index = trips.indexWhere((trip) => trip.id == updatedTrip.id);
       if (index != -1) {
         trips[index] = updatedTrip;
-        trips.refresh();
+        trips.refresh(); // To ensure the UI reflects the updated data
       }
       Get.back(); // Close the edit screen
       Get.snackbar("Success", "Trip updated successfully",
@@ -269,6 +341,8 @@ class TripController extends GetxController {
           colorText: Colors.white);
     }
   }
+
+  // In your TripController:
 
   //fetch trip data by id
   Future<TravelPlanModel> fetchTripById(String tripId) async {

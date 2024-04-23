@@ -8,9 +8,12 @@ import 'package:travelapptest/login/user_controller.dart';
 import 'package:travelapptest/trip/create_trip_form.dart';
 import 'package:travelapptest/trip/edit_trip_form.dart';
 import 'package:travelapptest/trip/trip_controller.dart';
+import 'package:travelapptest/trip/trip_itinerary/itinerary_controller.dart';
+import 'package:travelapptest/trip/trip_itinerary/itinerary_page.dart';
 import 'package:travelapptest/trip/trip_model.dart';
 import 'package:travelapptest/trip/trip_page.dart';
 import 'package:travelapptest/trip/trip_repository.dart';
+import 'package:travelapptest/trip/trip_model.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -67,7 +70,25 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 print('Trip selected: ${trip.destination}');
                 // Implement navigation to the trip details screen
-                Get.to(() => TripDetailsPage(trip: trip));
+                // Get.to(() => TripDetailsPage(trip: trip)); //trip details page.
+
+                // Future<void> moveToItinerary() async {
+
+                //   Get.to(() => ItineraryPage(tripId: trip.id),    arguments: trip.id,
+
+                //  binding: ItineraryBinding());
+                // }
+
+                // moveToItinerary();
+
+                // Get.to(() => ItineraryPage(tripId: trip.id),    arguments: trip.id,
+
+                //  binding: ItineraryBinding());
+
+                Get.to(() => ItineraryPage(tripId: trip.id),
+                    binding: ItineraryBinding(), arguments: trip.id);
+
+                print("tripid: " + trip.id);
               },
               child: TravelCard(
                 tripId: trip.id,
@@ -120,6 +141,20 @@ class TravelCard extends StatelessWidget {
     this.tripImageUrl = '', // Change this later on to the actual image path
     // Additional parameters can be added here
   });
+
+  String formatTripDates(DateTime startDate, DateTime endDate) {
+    if (startDate.year == endDate.year) {
+      if (startDate.month == endDate.month) {
+        // Same month and year
+        return '${DateFormat('MMM d').format(startDate)} - ${DateFormat('d, yyyy').format(endDate)}';
+      }
+      // Same year, different months
+      return '${DateFormat('MMM d').format(startDate)} - ${DateFormat('MMM d, yyyy').format(endDate)}';
+    } else {
+      // Different years
+      return '${DateFormat('MMM d, yyyy').format(startDate)} - ${DateFormat('MMM d, yyyy').format(endDate)}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,16 +287,20 @@ class TravelCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        tripName,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+                      Expanded(
+                        child: Text(
+                          tripName,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
                         ),
                       ),
                       Text(
-                        '$tripStartDate - $tripEndDate',
+                        formatTripDates(DateTime.parse(tripStartDate), DateTime.parse(tripEndDate)),
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 16,
@@ -269,6 +308,7 @@ class TravelCard extends StatelessWidget {
                       ),
                     ],
                   ),
+
                   SizedBox(height: 4), // Adds a small space between elements
 
                   // Budget progress bar
