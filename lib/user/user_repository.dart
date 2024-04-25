@@ -139,4 +139,19 @@ class UserRepository extends GetxController {
         return 'application/octet-stream'; // Use a generic binary stream type or throw an error
     }
   }
+
+    // Method to fetch user details by user ID
+  Future<UserModel> fetchUserById(String userId) async {
+    try {
+      final DocumentSnapshot userDoc = await _db.collection("Users").doc(userId).get();
+      if (userDoc.exists) {
+        return UserModel.fromJson(userDoc.data() as Map<String, dynamic>);
+      } else {
+        throw Exception("User not found!");
+      }
+    } catch (e) {
+      print("Error fetching user by ID: $e");
+      throw Exception('Something went wrong. Please try again.');
+    }
+  }
 }

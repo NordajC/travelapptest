@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:travelapptest/home/appbar.dart';
+import 'package:travelapptest/login/user_controller.dart';
 import 'package:travelapptest/trip/trip_controller.dart';
 import 'package:travelapptest/trip/trip_itinerary/edit_itinerary_form.dart';
 import 'package:travelapptest/trip/trip_itinerary/itinerary_add_item_form.dart';
+import 'package:travelapptest/trip/trip_repository.dart';
+import 'package:travelapptest/user/user_model.dart';
+import 'package:travelapptest/user/user_repository.dart';
 import 'itinerary_controller.dart'; // Make sure this import path matches your project structure
 import 'package:travelapptest/trip/trip_model.dart'; // Import your ItineraryItemModel
 import 'package:intl/intl.dart';
@@ -14,6 +18,9 @@ class ItineraryPage extends GetView<ItineraryController> {
   final TripController tripController = Get.find();
   final Rx<TravelPlanModel?> selectedTrip = Rx<TravelPlanModel?>(null);
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
+
+  // final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final ItineraryController itineraryController = Get.find();
 
   ItineraryPage({super.key, required this.tripId});
 
@@ -28,6 +35,8 @@ class ItineraryPage extends GetView<ItineraryController> {
               DateTime.now()); // Load items for the start date or current date
       print(
           'Fetching details for trip ID: $tripId, startDate: ${data?.startDate}');
+
+      trackedReturnItemDate(selectedDate.value!);
     }).catchError((error) {
       Get.snackbar('Error', 'Failed to fetch trip details');
     });
@@ -58,28 +67,6 @@ class ItineraryPage extends GetView<ItineraryController> {
             );
           }),
           SizedBox(height: 10),
-          // Expanded(
-          //   child: Obx(() {
-          //     if (controller.isLoading.isTrue) {
-          //       return Center(child: CircularProgressIndicator());
-          //     }
-          //     var sortedItems = controller.itineraryItems
-          //         .where((item) =>
-          //             selectedDate.value != null &&
-          //             item.startTime.toLocal().day == selectedDate.value!.day)
-          //         .toList();
-          //     sortedItems.sort((a, b) =>
-          //         a.startTime.compareTo(b.startTime)); // Sort by start time
-
-          //     return ListView.builder(
-          //       itemCount: sortedItems.length,
-          //       itemBuilder: (context, index) {
-          //         final item = sortedItems[index];
-          //         return ItineraryItemCard(itineraryItem: item);
-          //       },
-          //     );
-          //   }),
-          // ),
 
           Expanded(
             child: Obx(() {
@@ -101,6 +88,9 @@ class ItineraryPage extends GetView<ItineraryController> {
                   return ItineraryItemCard(
                     itineraryItem: item,
                     tripId: tripId,
+                    onOpenAddExpenseDialog: () => {
+                      openAddExpenseDialog(context, tripId, item.id),
+                    },
                     onDelete: (DateTime date) =>
                         controller.deleteItineraryItem(tripId, item.id, date),
                     onEdit: (ItineraryItem updatedItem) {
@@ -176,7 +166,7 @@ class CalendarStrip extends StatelessWidget {
           return DateTile(
             date: date,
             isSelected: isSelected,
-            onSelect: () => onSelectDate(date),
+            onSelect: () => {onSelectDate(date), trackedReturnItemDate(date)},
           );
         },
       ),
@@ -259,12 +249,22 @@ class ItineraryItemCard extends StatelessWidget {
   final Function(DateTime date) onDelete;
   final Function(ItineraryItem item) onEdit;
 
+  final VoidCallback onOpenAddExpenseDialog;
+
+  TripController tripController = Get.find();
+
   ItineraryItemCard({
     required this.itineraryItem,
     required this.tripId,
     required this.onDelete,
     required this.onEdit,
-  });
+    required this.onOpenAddExpenseDialog,
+  }) {
+    // Fetch and store the username when the widget is initialized
+    if (itineraryItem.paidBy != null) {
+      tripController.fetchAndStoreUserName(itineraryItem.paidBy!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -348,33 +348,46 @@ class ItineraryItemCard extends StatelessWidget {
                     SizedBox(height: 12),
 
                     if (itineraryItem.price != null)
-                      Wrap(
-                        children: [
-                          Chip(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5)),
-                            side: BorderSide.none,
-                            labelPadding: EdgeInsets.symmetric(
-                                horizontal: -2, vertical: 0),
-                            label: Text(
-                                "\£${itineraryItem.price!.toStringAsFixed(2)}",
-                                style: TextStyle(color: Colors.blue[800])),
-                            backgroundColor: Colors.blue[100],
-                          ),
-                          if (itineraryItem.paidBy != null)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Chip(
-                                label: Text("Paid by ${itineraryItem.paidBy!}"),
-                                backgroundColor: Colors.orange[200],
+                      Obx(() => Wrap(
+                            // Wrap properties...
+                            children: [
+                              Chip(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                side: BorderSide.none,
+                                labelPadding: EdgeInsets.symmetric(
+                                    horizontal: -2, vertical: 0),
+                                label: Text(
+                                    "\£${itineraryItem.price!.toStringAsFixed(2)}",
+                                    style: TextStyle(color: Colors.blue[800])),
+                                backgroundColor: Colors.blue[100],
                               ),
-                            ),
-                        ],
-                      ),
+                              if (itineraryItem.paidBy != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Chip(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5)),
+                                    side: BorderSide.none,
+                                    label: Text(
+                                        "Paid by ${tripController.userNames[itineraryItem.paidBy]?.value ?? 'Loading...'}", style: TextStyle(color: Colors.blue)),
+                                    backgroundColor: Colors.blue[100],
+                                  ),
+                                ),
+                            ],
+                          )),
                     if (itineraryItem.price == null)
                       TextButton(
                         onPressed: () {
-                          // TODO: Implement the showAddPriceForm function
+
+                          tripController.fetchTripById(tripId).then((trip) {
+
+                            openAddExpenseDialog(
+                                context, tripId, itineraryItem.id);
+                          });
+
+                          print("item/activity id: ${itineraryItem.id}");
+
                         },
                         style: TextButton.styleFrom(
                             backgroundColor: Colors.blue[100],
@@ -444,4 +457,264 @@ void parseDate(String dateString) {
   DateFormat format = DateFormat('yyyy-MM-dd');
   DateTime dateTime = format.parse(dateString);
   print(dateTime);
+}
+
+void openAddExpenseDialog(
+    BuildContext context, String tripId, String itemId) async {
+  try {
+    TripRepository tripRepository = Get.find();
+    UserRepository userRepository = Get.find();
+
+    List<ParticipantBudget> participants =
+        await tripRepository.fetchParticipantBudgets(tripId);
+
+    if (participants.isEmpty) {
+      throw Exception("No participants found for trip $tripId");
+    }
+
+    // Concurrently fetch all usernames using Future.wait
+    List<Future<UserModel>> fetchUserFutures = participants
+        .map((participant) =>
+            userRepository.fetchUserById(participant.participantId))
+        .toList();
+
+    // Resolve all futures to get user models
+    List<UserModel> users = await Future.wait(fetchUserFutures);
+    List<String> participantUsernames =
+        users.map((user) => user.username).toList();
+
+    showDialog(
+      context: context,
+      builder: (context) => AddExpenseDialog(
+        tripId: tripId,
+        participants: participants,
+        participantUsernames: participantUsernames,
+        itemId: itemId,
+      ),
+    );
+  } catch (e) {
+    print("Error opening add expense dialog: $e"); // More detailed logging
+    Get.snackbar("Error", "Failed to load participant details. Error: $e");
+  }
+}
+
+class AddExpenseDialog extends StatefulWidget {
+  final List<ParticipantBudget>
+      participants; // This expects a list of ParticipantBudget
+  final List<String> participantUsernames;
+  final String tripId;
+  final String itemId;
+
+  AddExpenseDialog({
+    Key? key,
+    required this.participants,
+    required this.participantUsernames,
+    required this.tripId,
+    required this.itemId,
+  }) : super(key: key);
+
+  @override
+  _AddExpenseDialogState createState() => _AddExpenseDialogState();
+}
+
+class _AddExpenseDialogState extends State<AddExpenseDialog> {
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedPayer;
+  double? _amount;
+  String _splitType = 'equal';
+  Map<String, double> customSplits = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Add Expense'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Amount'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || double.tryParse(value) == null) {
+                    return 'Please enter a valid amount';
+                  }
+                  return null;
+                },
+                onSaved: (val) => _amount = double.tryParse(val!),
+              ),
+              DropdownButtonFormField<String>(
+                value: _selectedPayer,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedPayer = newValue;
+                  });
+                },
+                items: List.generate(widget.participants.length, (index) {
+                  return DropdownMenuItem<String>(
+                    value: widget.participants[index].participantId,
+                    child: Text(widget.participantUsernames[index]),
+                  );
+                }),
+                decoration: InputDecoration(labelText: 'Who paid?'),
+                isExpanded: true,
+              ),
+              ListTile(
+                title: const Text('Paid for themselves'),
+                leading: Radio(
+                  value: 'individual',
+                  groupValue: _splitType,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _splitType = value!;
+                    });
+                  },
+                ),
+              ),
+              ListTile(
+                title: const Text('Paid for everyone'),
+                leading: Radio(
+                  value: 'onePaysForAll',
+                  groupValue: _splitType,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _splitType = value!;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        TextButton(
+            child: Text('Save'),
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                if (_amount != null && _selectedPayer != null) {
+                  // Assuming a handleExpense method in your controller
+                  ItineraryController itineraryController = Get.find();
+
+                  itineraryController.addExpense(
+                      widget.tripId,
+                      _selectedPayer!,
+                      widget.participants.map((p) => p.participantId).toList(),
+                      _amount!,
+                      _splitType == 'individual' ? 'individual' : 'group');
+
+                  await loadSelectedItemData(
+                      widget.tripId, trackedValue, widget.itemId);
+
+                  if (_amount != null && _selectedPayer != null) {
+                    print("selected payerId: $_selectedPayer");
+                    print(
+                        'current item id:${itineraryController.currentItineraryItem.value?.id}');
+
+                    ItineraryItem updatedItem = ItineraryItem(
+                      id: itineraryController.currentItineraryItem.value!
+                          .id, // Provide a default id if null
+                      name: itineraryController
+                              .currentItineraryItem.value?.name ??
+                          'default_name', // Provide a default name if null
+                      startTime: itineraryController
+                              .currentItineraryItem.value?.startTime ??
+                          DateTime.now(), // Provide a default startTime if null
+                      endTime: itineraryController
+                              .currentItineraryItem.value?.endTime ??
+                          DateTime.now().add(Duration(
+                              hours: 1)), // Provide a default endTime if null
+                      location: itineraryController
+                              .currentItineraryItem.value?.location ??
+                          'default_location', // Provide a default location if null
+                      category: itineraryController
+                              .currentItineraryItem.value?.category ??
+                          "",
+                      price: _amount ?? 0.0,
+                      paidBy: _selectedPayer ?? "",
+                      notes: itineraryController
+                              .currentItineraryItem.value?.notes ??
+                          "",
+                      votes: itineraryController
+                              .currentItineraryItem.value?.votes ??
+                          {}, // Provide a default value if null
+                      suggestedBy: itineraryController
+                              .currentItineraryItem.value?.suggestedBy ??
+                          "", // Provide a default value if null
+                      status: "paid",
+                      generalExpenseAmount: itineraryController
+                              .currentItineraryItem
+                              .value
+                              ?.generalExpenseAmount ??
+                          0.0, // Provide a default value if null
+                      generalExpenseDescription: itineraryController
+                              .currentItineraryItem
+                              .value
+                              ?.generalExpenseDescription ??
+                          "", // Provide a default value if null
+                      generalExpensePaidBy: itineraryController
+                              .currentItineraryItem
+                              .value
+                              ?.generalExpensePaidBy ??
+                          "", // Provide a default value if null
+                      splitDetails: itineraryController
+                              .currentItineraryItem.value?.splitDetails ??
+                          {}, // Provide a default value if null
+                      participants: itineraryController
+                              .currentItineraryItem.value?.participants ??
+                          [], // Provide a default value if null
+                      paymentStatus: itineraryController
+                              .currentItineraryItem.value?.paymentStatus ??
+                          {}, // Provide a default value if null
+                      splitType:
+                          _splitType ?? "", // Provide a default value if null
+                    );
+
+                    itineraryController.handleNewExpense(
+                      widget.tripId,
+                      updatedItem,
+                      _selectedPayer!,
+                      _amount!,
+                      trackedValue,
+                    );
+                  }
+                  Navigator.of(context).pop(); // Close the dialog
+                }
+              }
+            }),
+      ],
+    );
+  }
+}
+
+// Original function
+DateTime returnItemDate(DateTime itemDate) {
+  print("itemDate: $itemDate");
+  return itemDate;
+}
+
+// Wrapper function
+DateTime trackedReturnItemDate(DateTime itemDate) {
+  // Call the original function
+  DateTime result = returnItemDate(itemDate);
+
+  // Assign the returned value to the global variable
+  trackedValue = result; // Assuming trackedValue is a global DateTime variable
+
+  return result;
+}
+
+DateTime trackedValue = DateTime.now();
+
+Future<void> loadSelectedItemData(
+    String tripId, DateTime itemDate, String itemId) async {
+  ItineraryController itineraryController = Get.find();
+  await itineraryController.fetchItineraryItemById(tripId, itemDate, itemId);
 }

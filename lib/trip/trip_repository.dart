@@ -134,4 +134,28 @@ class TripRepository extends GetxService {
       await saveDailyItinerary(tripId, updated);
     }
   }
+
+  // Fetch participant budgets based on tripId
+  Future<List<ParticipantBudget>> fetchParticipantBudgets(String tripId) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> tripSnapshot =
+          await _db.collection("Trips").doc(tripId).get();
+      var data = tripSnapshot.data();
+
+      if (data == null) {
+        throw Exception("Trip not found");
+      }
+
+      List<dynamic> budgetsData = data['participantBudgets'] ?? [];
+      List<ParticipantBudget> budgets = budgetsData
+          .map((budget) =>
+              ParticipantBudget.fromJson(budget as Map<String, dynamic>))
+          .toList();
+
+      return budgets;
+    } catch (e) {
+      print('Failed to fetch participant budgets: $e');
+      throw Exception('Failed to fetch participant budgets: $e');
+    }
+  }
 }

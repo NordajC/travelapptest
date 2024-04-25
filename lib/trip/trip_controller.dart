@@ -1,106 +1,3 @@
-// import 'package:get/get.dart';
-// import 'package:flutter/material.dart';
-// import 'package:travelapptest/login/user_controller.dart';
-// import 'package:travelapptest/trip/trip_model.dart'; // Adjust the import path as needed
-// import 'package:travelapptest/trip/trip_repository.dart'; // Ensure this points to your TripRepository
-
-// class TripController extends GetxController {
-//   static TripController get instance => Get.find();
-
-//   final TripRepository tripRepository = Get.put(TripRepository());
-//   final UserController userController = Get.find<UserController>();
-
-//   final destination = TextEditingController();
-//   final startDate = TextEditingController();
-//   final endDate = TextEditingController();
-//   final budget = TextEditingController();
-//   final description = TextEditingController();
-
-//   GlobalKey<FormState> tripFormKey = GlobalKey<FormState>();
-
-//   RxList<TravelPlanModel> trips = RxList<TravelPlanModel>();
-
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     loadUserTrips();
-//   }
-
-//   // Method to create a new trip using input from a form
-//   Future<void> createTrip() async {
-//     String creatorId = userController.user.value.id;
-
-//     // Use the .text property of each TextEditingController to access the form field values
-//     String destinationValue = destination.text;
-//     DateTime startDateValue = DateTime.parse(
-//         startDate.text); // Ensure this parsing aligns with your date format
-//     DateTime endDateValue = DateTime.parse(endDate.text); // Same as above
-//     double budgetValue =
-//         double.tryParse(budget.text) ?? 0.0; // Provide a fallback value
-//     String descriptionValue = description.text;
-
-//     TravelPlanModel newTrip = TravelPlanModel(
-//       id: '',
-//       creatorId: creatorId,
-//       destination: destinationValue,
-//       startDate: startDateValue,
-//       endDate: endDateValue,
-//       participantIds: [creatorId],
-//       participantBudgets: [
-//         ParticipantBudget(participantId: creatorId, budget: budgetValue)
-//       ],
-//       description: descriptionValue,
-//     );
-
-//     try {
-//       await tripRepository.saveTripRecord(newTrip);
-//       trips.add(
-//           newTrip); // Optionally, update the observable list for UI binding
-//       Get.back(); // Go back to the previous screen after creation
-//       Get.snackbar("Success", "Trip created successfully",
-//           backgroundColor: Colors.green, colorText: Colors.white);
-//     } catch (e) {
-//       Get.snackbar("Error", "Failed to create trip: $e",
-//           snackPosition: SnackPosition.BOTTOM,
-//           backgroundColor: Colors.red,
-//           colorText: Colors.white);
-//     }
-//   }
-
-//   // Fetch trips for the current user
-//   void loadUserTrips() async {
-//     String userId = userController.user.value.id;
-
-//     try {
-//       final userTrips = await tripRepository.fetchUserTrips(userId);
-//       trips.assignAll(userTrips);
-//     } catch (e) {
-//       Get.snackbar("Error", "Failed to load trips: $e",
-//           snackPosition: SnackPosition.BOTTOM,
-//           backgroundColor: Colors.red,
-//           colorText: Colors.white);
-//     }
-//   }
-
-//   // Method to delete a trip
-//   Future<void> deleteTrip(String tripId) async {
-//     try {
-//       await tripRepository.deleteTripRecord(tripId);
-//       trips.removeWhere(
-//           (trip) => trip.id == tripId); // Update the observable list
-//       Get.snackbar("Success", "Trip deleted successfully",
-//           backgroundColor: Colors.green, colorText: Colors.white);
-//     } catch (e) {
-//       Get.snackbar("Error", "Failed to delete trip: $e",
-//           snackPosition: SnackPosition.BOTTOM,
-//           backgroundColor: Colors.red,
-//           colorText: Colors.white);
-//     }
-//   }
-
-//   // Additional methods for updating trips, managing participants, etc., can be added here...
-// }
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -108,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:travelapptest/login/user_controller.dart';
 import 'package:travelapptest/trip/trip_model.dart';
 import 'package:travelapptest/trip/trip_repository.dart';
+import 'package:travelapptest/user/user_model.dart';
+import 'package:travelapptest/user/user_repository.dart';
 
 class TripBinding extends Bindings {
   @override
@@ -123,6 +22,7 @@ class TripController extends GetxController {
   static TripController get instance => Get.find();
   final TripRepository tripRepository;
   final UserController userController;
+  final UserRepository userRepository = Get.find();
 
   final destination = TextEditingController();
   final startDate = TextEditingController();
@@ -134,8 +34,9 @@ class TripController extends GetxController {
 
   var trips = <TravelPlanModel>[].obs;
 
-    final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  var userNames = <String, RxnString>{}.obs;
 
   TripController({
     required this.tripRepository,
@@ -153,53 +54,59 @@ class TripController extends GetxController {
     });
   }
 
-Future<void> createTrip() async {
-  String creatorId = userController.user.value.id;
-  double creatorBudgetValue = double.tryParse(budget.text) ?? 0.0;
-  String destinationValue = destination.text;
-  DateTime startDateValue = DateTime.parse(startDate.text);
-  DateTime endDateValue = DateTime.parse(endDate.text);
-  String descriptionValue = description.text;
+  Future<void> createTrip() async {
+    String creatorId = userController.user.value.id;
+    double creatorBudgetValue = double.tryParse(budget.text) ?? 0.0;
+    String destinationValue = destination.text;
+    DateTime startDateValue = DateTime.parse(startDate.text);
+    DateTime endDateValue = DateTime.parse(endDate.text);
+    String descriptionValue = description.text;
 
-  // Create a new ID if it's a new trip or use an existing ID
-  String tripId = _db.collection('Trips').doc().id;
+    // Create a new ID if it's a new trip or use an existing ID
+    String tripId = _db.collection('Trips').doc().id;
 
-  List<DailyItinerary> dailyItineraries = List.generate(
-    endDateValue.difference(startDateValue).inDays + 1,
-    (index) => DailyItinerary(
-      date: startDateValue.add(Duration(days: index)),
-      items: [],
-    ),
-  );
+    List<DailyItinerary> dailyItineraries = List.generate(
+      endDateValue.difference(startDateValue).inDays + 1,
+      (index) => DailyItinerary(
+        date: startDateValue.add(Duration(days: index)),
+        items: [],
+      ),
+    );
 
-  TravelPlanModel newTrip = TravelPlanModel(
-    id: tripId,
-    creatorId: creatorId,
-    destination: destinationValue,
-    startDate: startDateValue,
-    endDate: endDateValue,
-    participantIds: [creatorId],
-    participantBudgets: [ParticipantBudget(participantId: creatorId, budget: creatorBudgetValue)],
-    description: descriptionValue,
-    dailyItineraries: dailyItineraries,
-  );
+    TravelPlanModel newTrip = TravelPlanModel(
+      id: tripId,
+      creatorId: creatorId,
+      destination: destinationValue,
+      startDate: startDateValue,
+      endDate: endDateValue,
+      participantIds: [creatorId],
+      participantBudgets: [
+        ParticipantBudget(participantId: creatorId, budget: creatorBudgetValue)
+      ],
+      description: descriptionValue,
+      dailyItineraries: dailyItineraries,
+    );
 
-  try {
-    await tripRepository.saveTripRecord(newTrip);
-    // Save each daily itinerary as a separate document in the sub-collection
-    for (DailyItinerary itinerary in dailyItineraries) {
-      await tripRepository.saveDailyItinerary(tripId, itinerary);
+    try {
+      await tripRepository.saveTripRecord(newTrip);
+      // Save each daily itinerary as a separate document in the sub-collection
+      for (DailyItinerary itinerary in dailyItineraries) {
+        await tripRepository.saveDailyItinerary(tripId, itinerary);
+      }
+
+      trips.add(newTrip);
+      trips.refresh();
+      loadUserTrips();
+      Get.back();
+      Get.snackbar("Success", "Trip created successfully",
+          backgroundColor: Colors.green, colorText: Colors.white);
+    } catch (e) {
+      Get.snackbar("Error", "Failed to create trip: $e",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
     }
-
-    trips.add(newTrip);
-    trips.refresh();
-    loadUserTrips();
-    Get.back();
-    Get.snackbar("Success", "Trip created successfully", backgroundColor: Colors.green, colorText: Colors.white);
-  } catch (e) {
-    Get.snackbar("Error", "Failed to create trip: $e", snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
   }
-}
 
   void loadUserTrips() async {
     String userId = userController.user.value.id;
@@ -354,4 +261,29 @@ Future<void> createTrip() async {
       throw Exception('Failed to fetch trip in controller: $e');
     }
   }
+
+  //fetch user names by id
+
+  void fetchAndStoreUserName(String userId) async {
+    if (!userNames.containsKey(userId)) { // If username is not already fetched
+      userNames[userId] = RxnString();
+      try {
+        UserModel user = await UserRepository().fetchUserById(userId);
+        userNames[userId]!.value = user.username;
+      } catch (e) {
+        print("Error fetching user: $e");
+        userNames[userId]!.value = "Unknown"; // Set a default value in case of an error
+      }
+    }
+  }
+
+  // Method to get the username for a given userId
+  // Get the username for the given userId
+  String? getUserName(String userId) {
+    if (userNames.containsKey(userId)) {
+      return userNames[userId]?.value;
+    }
+    return null;
+  }
 }
+

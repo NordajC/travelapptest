@@ -61,6 +61,19 @@ class UserModel {
         'profilePicture': profilePicture,
       };
 
+  //from json remove if needed for now
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] ?? '',
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      email: json['email'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      username: json['username'] ?? '',
+      profilePicture: json['profilePicture'] ?? '',
+    );
+  }
+
   //factory to convert firestore document to user model
   factory UserModel.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document){
     if (document.data() != null) {

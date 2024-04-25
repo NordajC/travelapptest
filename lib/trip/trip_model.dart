@@ -4,17 +4,21 @@ class ParticipantBudget {
   final String participantId;
   double budget; // Fixed budget for each participant
   double spendings; // Total spendings for each participant
+  Map<String, double> debts; // Debts owed by this participant to others
 
   ParticipantBudget({
     required this.participantId,
     required this.budget,
     this.spendings = 0.0,
-  });
+    Map<String, double>? debts,
+  }) : debts = debts ?? {};
 
   Map<String, dynamic> toJson() => {
         'participantId': participantId,
         'budget': budget,
         'spendings': spendings,
+        'debts': debts.map((key, value) => MapEntry(
+            key, value.toString())), // Ensuring the map is serialized properly
       };
 
   static ParticipantBudget fromJson(Map<String, dynamic> json) =>
@@ -22,6 +26,9 @@ class ParticipantBudget {
         participantId: json['participantId'],
         budget: json['budget'],
         spendings: json['spendings']?.toDouble() ?? 0.0,
+        debts: (json['debts'] as Map<String, dynamic>?)
+                ?.map((key, value) => MapEntry(key, double.parse(value))) ??
+            {},
       );
 
   void addSpending(double amount) {
@@ -31,7 +38,81 @@ class ParticipantBudget {
   void removeSpending(double amount) {
     spendings -= amount;
   }
+
+  void addDebt(String otherParticipantId, double amount) {
+    debts.update(otherParticipantId, (existing) => existing + amount,
+        ifAbsent: () => amount);
+  }
+
+  void reduceDebt(String otherParticipantId, double amount) {
+    if (debts[otherParticipantId] != null) {
+      debts[otherParticipantId] = debts[otherParticipantId]! - amount;
+      if (debts[otherParticipantId]! <= 0) debts.remove(otherParticipantId);
+    }
+  }
 }
+
+//original working itinerary item model
+
+// class ItineraryItem {
+//   final String id;
+//   String name;
+//   DateTime startTime;
+//   DateTime endTime;
+//   String location;
+//   double? price;
+//   String? paidBy;
+//   Map<String, int> votes; // User IDs and their votes
+//   String suggestedBy;
+//   String status; // e.g., "pending", "approved", "rejected"
+//   String? category;
+//   String? notes;
+
+//   ItineraryItem({
+//     required this.id,
+//     required this.name,
+//     required this.startTime,
+//     required this.endTime,
+//     required this.location,
+//     this.price,
+//     this.paidBy,
+//     this.votes = const {},
+//     this.suggestedBy = '',
+//     this.status = 'pending',
+//     this.category,
+//     this.notes,
+//   });
+
+//   Map<String, dynamic> toJson() => {
+//         'id': id,
+//         'name': name,
+//         'startTime': startTime.toIso8601String(),
+//         'endTime': endTime.toIso8601String(),
+//         'location': location,
+//         'price': price,
+//         'paidBy': paidBy,
+//         'votes': votes,
+//         'suggestedBy': suggestedBy,
+//         'status': status,
+//         'category': category,
+//         'notes': notes,
+//       };
+
+//   static ItineraryItem fromJson(Map<String, dynamic> json) => ItineraryItem(
+//         id: json['id'],
+//         name: json['name'],
+//         startTime: DateTime.parse(json['startTime']),
+//         endTime: DateTime.parse(json['endTime']),
+//         location: json['location'],
+//         price: json['price']?.toDouble(), // Handle optional double
+//         paidBy: json['paidBy'], // Optional
+//         votes: Map<String, int>.from(json['votes'] ?? {}),
+//         suggestedBy: json['suggestedBy'] ?? '',
+//         status: json['status'] ?? 'pending',
+//         category: json['category'],
+//         notes: json['notes'],
+//       );
+// }
 
 class ItineraryItem {
   final String id;
@@ -39,13 +120,21 @@ class ItineraryItem {
   DateTime startTime;
   DateTime endTime;
   String location;
-  double? price;
-  String? paidBy;
-  Map<String, int> votes; // User IDs and their votes
+  double? price; // Linked to specific activity
+  double? generalExpenseAmount; // For unlinked general expenses
+  String? paidBy; // Who paid for the linked activity
+  String? generalExpensePaidBy; // Who paid for the general expense
+  Map<String, int> votes;
   String suggestedBy;
-  String status; // e.g., "pending", "approved", "rejected"
+  String status;
   String? category;
   String? notes;
+  String? generalExpenseDescription; // Description of the general expense
+  Map<String, double>? splitDetails; // Details on how the expense is split
+  List<String>? participants; // IDs of participants involved in the expense
+  Map<String, String>?
+      paymentStatus; // Payment status for each participant involved
+  String? splitType; // 'equal', 'percentage', 'custom'
 
   ItineraryItem({
     required this.id,
@@ -54,12 +143,19 @@ class ItineraryItem {
     required this.endTime,
     required this.location,
     this.price,
+    this.generalExpenseAmount,
     this.paidBy,
+    this.generalExpensePaidBy,
     this.votes = const {},
     this.suggestedBy = '',
     this.status = 'pending',
     this.category,
     this.notes,
+    this.generalExpenseDescription,
+    this.splitDetails,
+    this.participants,
+    this.paymentStatus,
+    this.splitType,
   });
 
   Map<String, dynamic> toJson() => {
@@ -69,12 +165,20 @@ class ItineraryItem {
         'endTime': endTime.toIso8601String(),
         'location': location,
         'price': price,
+        'generalExpenseAmount': generalExpenseAmount,
         'paidBy': paidBy,
+        'generalExpensePaidBy': generalExpensePaidBy,
         'votes': votes,
         'suggestedBy': suggestedBy,
         'status': status,
         'category': category,
         'notes': notes,
+        'generalExpenseDescription': generalExpenseDescription,
+        'splitDetails': splitDetails,
+        'participants': participants,
+        'paymentStatus':
+            paymentStatus?.map((key, value) => MapEntry(key, value.toString())),
+        'splitType': splitType,
       };
 
   static ItineraryItem fromJson(Map<String, dynamic> json) => ItineraryItem(
@@ -83,13 +187,20 @@ class ItineraryItem {
         startTime: DateTime.parse(json['startTime']),
         endTime: DateTime.parse(json['endTime']),
         location: json['location'],
-        price: json['price']?.toDouble(), // Handle optional double
-        paidBy: json['paidBy'], // Optional
+        price: json['price']?.toDouble(),
+        generalExpenseAmount: json['generalExpenseAmount']?.toDouble(),
+        paidBy: json['paidBy'],
+        generalExpensePaidBy: json['generalExpensePaidBy'],
         votes: Map<String, int>.from(json['votes'] ?? {}),
         suggestedBy: json['suggestedBy'] ?? '',
         status: json['status'] ?? 'pending',
         category: json['category'],
         notes: json['notes'],
+        generalExpenseDescription: json['generalExpenseDescription'],
+        splitDetails: Map<String, double>.from(json['splitDetails'] ?? {}),
+        participants: List<String>.from(json['participants'] ?? []),
+        paymentStatus: Map<String, String>.from(json['paymentStatus'] ?? {}),
+        splitType: json['splitType'],
       );
 }
 
