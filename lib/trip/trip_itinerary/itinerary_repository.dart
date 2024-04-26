@@ -51,11 +51,12 @@ class ItineraryRepository {
   }
 
   //fetch itinerary item by item id
-    Future<ItineraryItem> fetchItineraryItem(
+  Future<ItineraryItem> fetchItineraryItem(
       String tripId, DateTime selectedDate, String itemId) async {
     try {
       // Format the date to match the document ID format used in Firestore
-      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate) + "T00:00:00.000";
+      String formattedDate =
+          DateFormat('yyyy-MM-dd').format(selectedDate) + "T00:00:00.000";
 
       // Get the document reference
       DocumentReference docRef = _firestore
@@ -74,7 +75,8 @@ class ItineraryRepository {
       }
 
       // Convert the document into an ItineraryItem instance
-      ItineraryItem item = ItineraryItem.fromJson(docSnapshot.data() as Map<String, dynamic>);
+      ItineraryItem item =
+          ItineraryItem.fromJson(docSnapshot.data() as Map<String, dynamic>);
 
       return item;
     } catch (e) {
@@ -320,7 +322,7 @@ class ItineraryRepository {
 
   //   // Construct the path to the itinerary item's document using the tripId and itemId
   //   String path = 'Trips/$tripId/DailyItineraries/$formattedDate/Items/$itemId';
-    
+
   //   // Get a reference to the document
   //   DocumentReference itineraryItemRef = _firestore.doc(path);
 
@@ -348,4 +350,51 @@ class ItineraryRepository {
   //   // Optionally handle success or failure in the calling code
   //   print('Expense added to the itinerary item successfully');
   // }
+
+  //expense handling
+  Future<List<ItineraryItem>> fetchAllItineraryItems(String tripId) async {
+    List<ItineraryItem> allItineraryItems = [];
+
+    // First, retrieve all the dates (as sub-collection IDs) for the trip
+    QuerySnapshot dateCollections = await _firestore
+        .collection("Trips")
+        .doc(tripId)
+        .collection("DailyItineraries")
+        .get();
+
+    // For each date, retrieve all items and add them to the list
+    for (var dateDoc in dateCollections.docs) {
+      String date = dateDoc.id; // Assuming the ID is the date
+      QuerySnapshot itemsSnapshot = await _firestore
+          .collection("Trips")
+          .doc(tripId)
+          .collection("DailyItineraries")
+          .doc(date)
+          .collection("Items")
+          .get();
+
+      for (var itemDoc in itemsSnapshot.docs) {
+        ItineraryItem item =
+            ItineraryItem.fromJson(itemDoc.data() as Map<String, dynamic>);
+        allItineraryItems.add(item);
+      }
+    }
+
+    return allItineraryItems;
+  }
+
+  Future<List<DateTime>> fetchItineraryDates(String tripId) async {
+    // Assuming 'DailyItineraries' has documents named by date, fetch those document IDs.
+    var itineraryDatesDocs = await _firestore
+        .collection('Trips')
+        .doc(tripId)
+        .collection('DailyItineraries')
+        .get();
+
+    // Extract the dates from the document IDs or any date field within the documents.
+    List<DateTime> itineraryDates =
+        itineraryDatesDocs.docs.map((doc) => DateTime.parse(doc.id)).toList();
+
+    return itineraryDates;
+  }
 }

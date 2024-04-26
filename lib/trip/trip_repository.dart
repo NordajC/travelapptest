@@ -158,4 +158,24 @@ class TripRepository extends GetxService {
       throw Exception('Failed to fetch participant budgets: $e');
     }
   }
+
+  Future<ParticipantBudget> fetchBudgetForParticipant(
+      String tripId, String participantId) async {
+    List<ParticipantBudget> participantBudgets =
+        await fetchParticipantBudgets(tripId);
+    // Find the budget for the specified participant ID or throw an exception if not found.
+    ParticipantBudget participantBudget = participantBudgets.firstWhere(
+      (budget) => budget.participantId == participantId,
+      orElse: () => throw Exception("Participant budget not found"),
+    );
+    return participantBudget;
+  }
+
+  // Future<double> fetchTotalSpendingsForParticipant(
+  //     String tripId, String participantId) async {
+  //   ParticipantBudget participantBudget =
+  //       await fetchBudgetForParticipant(tripId, participantId);
+  //   return participantBudget
+  //       .spendings; // Returns the total spendings for the participant.
+  // }
 }

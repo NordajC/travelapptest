@@ -38,6 +38,8 @@ class TripController extends GetxController {
 
   var userNames = <String, RxnString>{}.obs;
 
+  var userTripBudgets = Map<String, ParticipantBudget>().obs;
+
   TripController({
     required this.tripRepository,
     required this.userController,
@@ -50,6 +52,7 @@ class TripController extends GetxController {
     ever(userController.user, (_) {
       if (userController.user.value.id.isNotEmpty) {
         loadUserTrips();
+        loadBudgetsForUserTrips(userController.user.value.id);
       }
     });
   }
@@ -285,5 +288,53 @@ class TripController extends GetxController {
     }
     return null;
   }
+
+
+    
+
+  // method to get total budget, debts and spendings for a trip
+
+  Future <void> loadBudgetsForUserTrips(String userId) async {
+    var tripsSnapshot = await FirebaseFirestore.instance.collection('Trips').get();
+    for (var tripDoc in tripsSnapshot.docs) {
+      String tripId = tripDoc.id;
+      List participantBudgets = tripDoc.data()['participantBudgets'];
+      var participantBudget = participantBudgets.firstWhere(
+        (budget) => budget['participantId'] == userId,
+        orElse: () => null
+      );
+
+      if (participantBudget != null) {
+        double spendings = participantBudget['spendings'] ?? 0;
+        Map<String, dynamic> debts = participantBudget['debts'] as Map<String, dynamic> ?? {};
+        // Sum up all debts for this user
+        double totalDebts = debts.values.fold(0.0, (sum, debt) => sum + (debt ?? 0.0));
+
+        // Update spendings to include debts
+        spendings += totalDebts;
+
+        userTripBudgets[tripId] = ParticipantBudget(
+          participantId: participantBudget['participantId'],
+          budget: participantBudget['budget'],
+          spendings: spendings
+        );
+      }
+    }
+  }
+  
+
+  // remove this method from the controller if needed
+Future<void> fetchParticipantBudget(String tripId, String currentUserId) async {
+  // Mark the function body as asynchronous with the 'async' keyword
+  try {
+    ParticipantBudget currentParticipantBudget = await tripRepository.fetchBudgetForParticipant(tripId, currentUserId);
+    // Use the fetched participant budget here
+    print(currentParticipantBudget);
+  } catch (e) {
+    // Handle any potential errors here
+    print('Error fetching participant budget: $e');
+  }
+}
+
 }
 

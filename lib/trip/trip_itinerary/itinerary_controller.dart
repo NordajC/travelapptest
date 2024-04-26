@@ -239,13 +239,13 @@ class ItineraryController extends GetxController {
         tripId, creditorId, debtorId, paymentAmount, false);
   }
 
-    Future<void> handleNewExpense(
-      String tripId,
-      ItineraryItem updatedItem,
-      String payerId,
-      double expenseAmount,
-      DateTime selectedDate,
-      ) async {
+  Future<void> handleNewExpense(
+    String tripId,
+    ItineraryItem updatedItem,
+    String payerId,
+    double expenseAmount,
+    DateTime selectedDate,
+  ) async {
     // First, update the itinerary item itself.
     await itineraryRepository.updateItineraryItem(tripId, updatedItem);
     loadItineraryItems(tripId, selectedDate);
@@ -258,18 +258,20 @@ class ItineraryController extends GetxController {
 
   //fetch itinerary items by a specific item id
 
-  Future <void> fetchItineraryItemById(String tripId, DateTime date, String itemId) async {
+  Future<void> fetchItineraryItemById(
+      String tripId, DateTime date, String itemId) async {
     try {
-      isLoading(true); // If using GetX, to notify observers that loading has started
+      isLoading(
+          true); // If using GetX, to notify observers that loading has started
 
       print(" UP HERE Fetching itinerary item: $itemId");
 
-      var item = await itineraryRepository.fetchItineraryItem(tripId, date, itemId);
+      var item =
+          await itineraryRepository.fetchItineraryItem(tripId, date, itemId);
       currentItineraryItem(item); // Notify observers with the new item
 
       print("Fetched itinerary item: $item");
       print("HERE");
-
     } catch (e) {
       // Handle errors, could log them or show user-friendly error messages
       Get.snackbar("Error", "Failed to fetch itinerary item: $e");
@@ -277,5 +279,4 @@ class ItineraryController extends GetxController {
       isLoading(false); // Notify observers that loading has finished
     }
   }
-
 }

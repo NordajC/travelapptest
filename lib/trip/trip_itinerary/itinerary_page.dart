@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:travelapptest/expense/expense_controller.dart';
+import 'package:travelapptest/expense/expense_page.dart';
 import 'package:travelapptest/home/appbar.dart';
 import 'package:travelapptest/login/user_controller.dart';
 import 'package:travelapptest/trip/trip_controller.dart';
@@ -47,6 +49,16 @@ class ItineraryPage extends GetView<ItineraryController> {
               selectedTrip.value?.destination ?? 'Itinerary',
               overflow: TextOverflow.ellipsis,
             )),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.attach_money_outlined),
+            onPressed: () {
+              Get.to(() => ExpenseOverviewPage(tripId: tripId,),
+                  binding: ExpenseBinding(), arguments: tripId);
+              print(tripId);
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -67,7 +79,6 @@ class ItineraryPage extends GetView<ItineraryController> {
             );
           }),
           SizedBox(height: 10),
-
           Expanded(
             child: Obx(() {
               if (controller.isLoading.isTrue) {
@@ -370,7 +381,8 @@ class ItineraryItemCard extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(5)),
                                     side: BorderSide.none,
                                     label: Text(
-                                        "Paid by ${tripController.userNames[itineraryItem.paidBy]?.value ?? 'Loading...'}", style: TextStyle(color: Colors.blue)),
+                                        "Paid by ${tripController.userNames[itineraryItem.paidBy]?.value ?? 'Loading...'}",
+                                        style: TextStyle(color: Colors.blue)),
                                     backgroundColor: Colors.blue[100],
                                   ),
                                 ),
@@ -379,15 +391,12 @@ class ItineraryItemCard extends StatelessWidget {
                     if (itineraryItem.price == null)
                       TextButton(
                         onPressed: () {
-
                           tripController.fetchTripById(tripId).then((trip) {
-
                             openAddExpenseDialog(
                                 context, tripId, itineraryItem.id);
                           });
 
                           print("item/activity id: ${itineraryItem.id}");
-
                         },
                         style: TextButton.styleFrom(
                             backgroundColor: Colors.blue[100],
@@ -603,6 +612,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   // Assuming a handleExpense method in your controller
                   ItineraryController itineraryController = Get.find();
 
+                  TripController tripController = Get.find();
+
                   itineraryController.addExpense(
                       widget.tripId,
                       _selectedPayer!,
@@ -685,6 +696,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       trackedValue,
                     );
                   }
+
                   Navigator.of(context).pop(); // Close the dialog
                 }
               }

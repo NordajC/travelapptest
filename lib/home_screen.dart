@@ -16,6 +16,15 @@ import 'package:travelapptest/trip/trip_repository.dart';
 import 'package:travelapptest/trip/trip_model.dart';
 
 class HomePage extends StatelessWidget {
+
+  
+  onInit() {
+    final TripController tripController = Get.find();
+    final UserController userController = Get.find();
+    tripController.loadUserTrips();
+    tripController.loadBudgetsForUserTrips(userController.user.value.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(AuthenticationRepository());
@@ -69,21 +78,6 @@ class HomePage extends StatelessWidget {
             return GestureDetector(
               onTap: () {
                 print('Trip selected: ${trip.destination}');
-                // Implement navigation to the trip details screen
-                // Get.to(() => TripDetailsPage(trip: trip)); //trip details page.
-
-                // Future<void> moveToItinerary() async {
-
-                //   Get.to(() => ItineraryPage(tripId: trip.id),    arguments: trip.id,
-
-                //  binding: ItineraryBinding());
-                // }
-
-                // moveToItinerary();
-
-                // Get.to(() => ItineraryPage(tripId: trip.id),    arguments: trip.id,
-
-                //  binding: ItineraryBinding());
 
                 Get.to(() => ItineraryPage(tripId: trip.id),
                     binding: ItineraryBinding(), arguments: trip.id);
@@ -158,10 +152,14 @@ class TravelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double spentPercentage = (tripSpent / tripBudget)
-        .clamp(0.0, 1.0); // Ensure the value is between 0 and 1
-
     final TripController tripController = Get.find();
+
+    var budgetInfo = tripController.userTripBudgets[tripId];
+
+    double spentPercentage =
+        ((budgetInfo?.spendings ?? 0) / (budgetInfo?.budget ?? 1))
+            .clamp(0.0, 1.0);
+    bool isOverBudget = spentPercentage >= 1.0;
 
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(32, 32, 32, 16),
@@ -300,7 +298,8 @@ class TravelCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        formatTripDates(DateTime.parse(tripStartDate), DateTime.parse(tripEndDate)),
+                        formatTripDates(DateTime.parse(tripStartDate),
+                            DateTime.parse(tripEndDate)),
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 16,
@@ -318,18 +317,39 @@ class TravelCard extends StatelessWidget {
                       value: spentPercentage,
                       minHeight: 10,
                       backgroundColor: Colors.grey[300],
-                      color: spentPercentage < 1.0
-                          ? Colors.blue
-                          : Colors.red, // Change color if over budget
+                      color: spentPercentage < 0.75
+                        ? Colors.blue
+                        : spentPercentage < 0.9
+                          ? Colors.yellow
+                          : Colors.red, // Change color based on spending percentage
                     ),
                   ),
                   SizedBox(height: 8), // Adds a small space between elements
-                  Text(
-                    'Spent: \$${tripSpent.toStringAsFixed(2)} / \$${tripBudget.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'Spent: £${budgetInfo?.spendings} / £${tripBudget.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: isOverBudget ? Colors.red : Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(width: 8), // Adds a small space between elements
+                      if (isOverBudget == true)
+                        Row(
+                          children: [
+                            Icon(Icons.warning_rounded, color: Colors.red, size: 18,),
+                            SizedBox(width: 4), // Adds a small space between elements
+                            Text(
+                              'Overbudget',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ],
               ),
