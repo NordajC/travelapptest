@@ -179,6 +179,13 @@ class SignupForm extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () => controller.signup(),
               child: const Text('Create Account'),
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xFF5E6EFF), // Background color
+                onPrimary: Colors.white, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
             ),
           ),
         ],

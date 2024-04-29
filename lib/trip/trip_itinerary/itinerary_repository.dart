@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:travelapptest/trip/trip_model.dart'; // Make sure to import your ItineraryItemModel
+import 'package:travelapptest/trip/trip_model.dart'; 
 
 class ItineraryRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,7 +18,7 @@ class ItineraryRepository {
           .doc(newItem.id);
 
       await docRef.set(newItem.toJson());
-      // Optionally update the newItem with the ID from the document reference, if needed.
+
     } catch (e) {
       Get.snackbar('Error', 'Failed to create itinerary item: $e');
     }
@@ -27,7 +27,7 @@ class ItineraryRepository {
   Future<List<ItineraryItem>> loadItineraryItems(
       String tripId, DateTime selectedDate) async {
     try {
-      // Format the date to match the document ID format used in Firestore
+      // Formatted the date to match the document ID format used in Firestore
       String formattedDate =
           DateFormat('yyyy-MM-dd').format(selectedDate) + "T00:00:00.000";
       QuerySnapshot querySnapshot = await _firestore
@@ -46,7 +46,7 @@ class ItineraryRepository {
       return items;
     } catch (e) {
       print("Failed to load items: $e");
-      throw e; // This will help to understand the exact error
+      throw e; 
     }
   }
 
@@ -87,7 +87,7 @@ class ItineraryRepository {
 
   Future<void> updateItineraryItem(
       String tripId, ItineraryItem updatedItem) async {
-    // Ensure the date is formatted correctly
+    // Ensures the date is formatted correctly
     String formattedDate =
         DateFormat('yyyy-MM-dd').format(updatedItem.startTime) +
             "T00:00:00.000";
@@ -109,7 +109,6 @@ class ItineraryRepository {
     DocumentSnapshot docSnapshot = await docRef.get();
     if (!docSnapshot.exists) {
       print('Document does not exist at path: $path');
-      // Handle the non-existence of the document appropriately
       return;
     }
 
@@ -119,7 +118,6 @@ class ItineraryRepository {
       print('Itinerary item updated successfully');
     } catch (e) {
       print('Error updating itinerary item: $e');
-      // Handle the update error appropriately
     }
   }
 
@@ -131,7 +129,7 @@ class ItineraryRepository {
         .collection('DailyItineraries')
         .doc(itemDate
             .toIso8601String()
-            .substring(0, 23)) // Ensure this matches your date formatting
+            .substring(0, 23)) 
         .collection('Items')
         .doc(itemId);
 
@@ -141,36 +139,8 @@ class ItineraryRepository {
       throw Exception('Error deleting itinerary item: $e');
     }
   }
-  // In your ItineraryRepository last code
 
-  // void updateParticipantBudget(
-  //     String tripId, String participantId, double amount, bool add) {
-  //   DocumentReference participantRef = _firestore
-  //       .collection('Trips')
-  //       .doc(tripId)
-  //       .collection('ParticipantBudgets')
-  //       .doc(participantId);
-
-  //   _firestore
-  //       .runTransaction((transaction) async {
-  //         DocumentSnapshot snapshot = await transaction.get(participantRef);
-
-  //         if (!snapshot.exists) {
-  //           throw Exception("Participant does not exist!");
-  //         }
-
-  //         // Extract current spendings and update based on the 'add' flag
-  //         double currentSpendings =
-  //             (snapshot.data() as Map<String, dynamic>)['spendings'].toDouble();
-  //         double updatedAmount =
-  //             add ? currentSpendings + amount : currentSpendings - amount;
-
-  //         transaction.update(participantRef, {'spendings': updatedAmount});
-  //       })
-  //       .then((_) => print("Budget updated successfully"))
-  //       .catchError((error) => print("Error updating budget: $error"));
-  // }
-
+  //update participant budget
   void updateParticipantBudget(
       String tripId, String participantId, double amount, bool add) {
     DocumentReference tripRef = _firestore.collection('Trips').doc(tripId);
@@ -192,7 +162,7 @@ class ItineraryRepository {
           final Map<String, dynamic> tripDataMap =
               tripData as Map<String, dynamic>;
 
-          // Use ?. to invoke [] conditionally in case tripDataMap['participantBudgets'] is null
+          // Extract the participant budgets array from the trip data
           final participantBudgets =
               tripDataMap['participantBudgets'] as List<dynamic>? ?? [];
 
@@ -224,54 +194,7 @@ class ItineraryRepository {
         .catchError((error) => print("Error updating budget: $error"));
   }
 
-  // void updateBudgetAndDebt(String tripId, String payerId, String debtorId,
-  //     double amount, bool isPayment) async {
-  //   DocumentReference tripRef = _firestore.collection('Trips').doc(tripId);
-
-  //   _firestore
-  //       .runTransaction((transaction) async {
-  //         DocumentSnapshot tripSnapshot = await transaction.get(tripRef);
-  //         if (!tripSnapshot.exists) {
-  //           throw Exception("Trip does not exist!");
-  //         }
-
-  //         // Properly casting the data to Map<String, dynamic>
-  //         Map<String, dynamic> data =
-  //             tripSnapshot.data() as Map<String, dynamic>? ?? {};
-  //         List<dynamic> participantBudgets =
-  //             data['participantBudgets'] as List<dynamic>? ?? [];
-
-  //         // Find payer and debtor in the participant budgets
-  //         Map<String, dynamic>? payerBudget = participantBudgets.firstWhere(
-  //             (budget) => budget['participantId'] == payerId,
-  //             orElse: () => null);
-  //         Map<String, dynamic>? debtorBudget = participantBudgets.firstWhere(
-  //             (budget) => budget['participantId'] == debtorId,
-  //             orElse: () => null);
-
-  //         if (payerBudget != null && (isPayment || debtorId == payerId)) {
-  //           // Update payer's spendings if it's a direct payment or paying for oneself
-  //           payerBudget['spendings'] =
-  //               (payerBudget['spendings'] as num) + amount;
-  //         }
-
-  //         if (payerBudget != null && debtorBudget != null && !isPayment) {
-  //           // Update debtor's debt to payer
-  //           Map<String, double> debts =
-  //               Map<String, double>.from(debtorBudget['debts'] ?? {});
-  //           debts[payerId] = (debts[payerId] ?? 0) + amount;
-  //           debtorBudget['debts'] = debts;
-  //         }
-
-  //         // Write the updated budgets back to the Firestore
-  //         transaction
-  //             .update(tripRef, {'participantBudgets': participantBudgets});
-  //       })
-  //       .then((_) => print("Budget and debts updated successfully"))
-  //       .catchError(
-  //           (error) => print("Error updating budget and debts: $error"));
-  // }
-
+  // Update the budget and debts for the payer and debtor
   void updateBudgetAndDebt(String tripId, String payerId, String debtorId,
       double amount, bool isPayment) async {
     DocumentReference tripRef = _firestore.collection('Trips').doc(tripId);
@@ -291,7 +214,7 @@ class ItineraryRepository {
           for (var budget in participantBudgets) {
             if (budget['participantId'] == payerId) {
               budget['spendings'] +=
-                  amount; // Assuming this is the correct logic
+                  amount; 
             }
             if (isPayment && budget['participantId'] == debtorId) {
               // Adjust debts here
@@ -311,45 +234,6 @@ class ItineraryRepository {
             (error) => print("Error updating budget and debts: $error"));
   }
 
-  // Future<void> addExpenseToItineraryItem(
-  //     String tripId,
-  //     String itemId,  // You get the ID from the ItineraryItem passed
-  //     String payerId,
-  //     double amount) async {
-  //   // Format the date to match the Firestore document ID structure
-  //   // Let's assume the ItineraryItem model includes a DateTime attribute named startTime
-  //   String formattedDate = DateFormat('yyyy-MM-dd').format(item.startTime) + "T00:00:00.000";
-
-  //   // Construct the path to the itinerary item's document using the tripId and itemId
-  //   String path = 'Trips/$tripId/DailyItineraries/$formattedDate/Items/$itemId';
-
-  //   // Get a reference to the document
-  //   DocumentReference itineraryItemRef = _firestore.doc(path);
-
-  //   // Prepare the expense details
-  //   Map<String, dynamic> expenseDetails = {
-  //     'amount': amount,
-  //     'paidBy': payerId,
-  //     'timestamp': FieldValue.serverTimestamp(), // Use server timestamp for consistency
-  //   };
-
-  //   // Execute a transaction to ensure atomicity of the update
-  //   await _firestore.runTransaction((transaction) async {
-  //     // Get the current data to ensure it exists
-  //     DocumentSnapshot snapshot = await transaction.get(itineraryItemRef);
-  //     if (!snapshot.exists) {
-  //       throw Exception('Itinerary item does not exist');
-  //     }
-
-  //     // Update the itinerary item with the new expense
-  //     transaction.update(itineraryItemRef, {
-  //       'expenses': FieldValue.arrayUnion([expenseDetails])
-  //     });
-  //   });
-
-  //   // Optionally handle success or failure in the calling code
-  //   print('Expense added to the itinerary item successfully');
-  // }
 
   //expense handling
   Future<List<ItineraryItem>> fetchAllItineraryItems(String tripId) async {
@@ -383,8 +267,9 @@ class ItineraryRepository {
     return allItineraryItems;
   }
 
+  //fetch itinerary dates
   Future<List<DateTime>> fetchItineraryDates(String tripId) async {
-    // Assuming 'DailyItineraries' has documents named by date, fetch those document IDs.
+    //  fetch document IDs.
     var itineraryDatesDocs = await _firestore
         .collection('Trips')
         .doc(tripId)

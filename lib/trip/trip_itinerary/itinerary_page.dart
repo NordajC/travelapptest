@@ -10,8 +10,8 @@ import 'package:travelapptest/trip/trip_itinerary/itinerary_add_item_form.dart';
 import 'package:travelapptest/trip/trip_repository.dart';
 import 'package:travelapptest/user/user_model.dart';
 import 'package:travelapptest/user/user_repository.dart';
-import 'itinerary_controller.dart'; // Make sure this import path matches your project structure
-import 'package:travelapptest/trip/trip_model.dart'; // Import your ItineraryItemModel
+import 'itinerary_controller.dart'; 
+import 'package:travelapptest/trip/trip_model.dart'; 
 import 'package:intl/intl.dart';
 import 'dart:ui';
 
@@ -106,8 +106,6 @@ class ItineraryPage extends GetView<ItineraryController> {
                         controller.deleteItineraryItem(tripId, item.id, date),
                     onEdit: (ItineraryItem updatedItem) {
                       // Navigate to a screen or show a form to edit the item
-                      // For simplicity, assume there is a method to handle this
-                      // showEditForm(context, item, tripId);
                       Get.to(
                           () => EditActivityForm(tripId: tripId, item: item));
                     },
@@ -128,8 +126,8 @@ class ItineraryPage extends GetView<ItineraryController> {
                 "Error", "Please select a date before adding an activity");
           }
         },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blueGrey,
+        child: Icon(Icons.add, color: Colors.white),
+        backgroundColor: Color(0xFF5E6EFF),
       ),
     );
   }
@@ -204,11 +202,11 @@ class DateTile extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.blue
+              ? Color(0xFF5E6EFF)
               : Colors.transparent, // Selected day highlighted
           borderRadius: BorderRadius.circular(10),
           border: isSelected
-              ? Border.all(color: Colors.blue, width: 2)
+              ? Border.all(color: Color(0xFF5E6EFF), width: 2)
               : null, // Border to indicate selection
         ),
         child: Column(
@@ -232,7 +230,7 @@ class DateTile extends StatelessWidget {
   }
 }
 
-// Define a Map for category icons just for example purposes. Update this based on your actual categories and icons.
+// Define a Map for category icons just for example purposes. 
 const Map<String, IconData> categoryIcons = {
   'Transportation': Icons.directions_bus,
   'Meals': Icons.local_dining,
@@ -243,7 +241,7 @@ const Map<String, IconData> categoryIcons = {
   'Other': Icons.more_horiz,
 };
 
-// Define a Map for category colors. Update this as needed.
+// Define a Map for category colors. 
 const Map<String, Color> categoryColors = {
   'Transportation': Colors.blue,
   'Meals': Colors.green,
@@ -334,7 +332,7 @@ class ItineraryItemCard extends StatelessWidget {
                       ],
                     ),
 
-                    // SizedBox(height: 10), // Add some spacing between items
+                    // SizedBox(height: 10), 
                     Row(
                       children: [
                         Icon(Icons.pin_drop, color: color, size: 16),
@@ -360,7 +358,6 @@ class ItineraryItemCard extends StatelessWidget {
 
                     if (itineraryItem.price != null)
                       Obx(() => Wrap(
-                            // Wrap properties...
                             children: [
                               Chip(
                                 shape: RoundedRectangleBorder(
@@ -481,7 +478,7 @@ void openAddExpenseDialog(
       throw Exception("No participants found for trip $tripId");
     }
 
-    // Concurrently fetch all usernames using Future.wait
+    // Concurrently fetch all usernames 
     List<Future<UserModel>> fetchUserFutures = participants
         .map((participant) =>
             userRepository.fetchUserById(participant.participantId))
@@ -509,7 +506,7 @@ void openAddExpenseDialog(
 
 class AddExpenseDialog extends StatefulWidget {
   final List<ParticipantBudget>
-      participants; // This expects a list of ParticipantBudget
+      participants; 
   final List<String> participantUsernames;
   final String tripId;
   final String itemId;
@@ -609,7 +606,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
                 if (_amount != null && _selectedPayer != null) {
-                  // Assuming a handleExpense method in your controller
+                  
                   ItineraryController itineraryController = Get.find();
 
                   TripController tripController = Get.find();
@@ -718,7 +715,7 @@ DateTime trackedReturnItemDate(DateTime itemDate) {
   DateTime result = returnItemDate(itemDate);
 
   // Assign the returned value to the global variable
-  trackedValue = result; // Assuming trackedValue is a global DateTime variable
+  trackedValue = result; 
 
   return result;
 }

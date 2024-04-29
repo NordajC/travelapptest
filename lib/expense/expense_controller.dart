@@ -10,8 +10,6 @@ class ExpenseBinding extends Bindings {
     // Retrieve `tripId` from arguments passed during navigation
     String tripId = Get.arguments as String;
 
-    // If your ExpenseController depends on a repository, ensure it's also injected
-    // For instance, if there's an ExpenseRepository
     Get.lazyPut
       (() => ExpenseController(tripId: tripId, itineraryRepository: Get.find()));
   }
@@ -51,11 +49,4 @@ class ExpenseController extends GetxController {
     }
     categoryExpenses.assignAll(tempCategoryExpenses);
   }
-
-  // Mock function to represent fetching itinerary dates. Replace with actual logic to get dates.
-  // Future<List<DateTime>> fetchItineraryDates(String tripId) async {
-  //   // Assuming you have a method to fetch the dates for a given trip
-  //   return []; // Fetch from Firestore
-  // }
-
 }

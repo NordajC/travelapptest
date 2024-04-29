@@ -32,7 +32,7 @@ class TripController extends GetxController {
 
   GlobalKey<FormState> tripFormKey = GlobalKey<FormState>();
 
-  var trips = <TravelPlanModel>[].obs;
+  var trips = <TravelPlanModel>[].obs; //observable list of trips
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -111,13 +111,18 @@ class TripController extends GetxController {
     }
   }
 
+  //loads all instances of trips the user's is in
   void loadUserTrips() async {
-    String userId = userController.user.value.id;
+    String userId =
+        userController.user.value.id; //fetch user id from the user controller
 
     try {
+      //fetches data from the database through the repository
       final userTrips = await tripRepository.fetchUserTrips(userId);
+      //assigns all users to the trips observable list
       trips.assignAll(userTrips);
-      print('Loading trips for user: $userId');
+      print(
+          'Loading trips for user: $userId'); //debuging code that prints the user id
     } catch (e) {
       trips.clear(); //clear list if there is an error
       Get.snackbar("Error", "Failed to load trips: $e",
@@ -141,27 +146,6 @@ class TripController extends GetxController {
           colorText: Colors.white);
     }
   }
-
-  // void onEditSubmit(String tripId) {
-  //   TravelPlanModel updatedTrip = TravelPlanModel(
-  //     id: tripId, // Make sure to have this ID from the trip you're editing
-  //     creatorId: userController.user.value.id,
-  //     destination: destination.text,
-  //     startDate: DateTime.parse(startDate.text),
-  //     endDate: DateTime.parse(endDate.text),
-  //     participantIds: [
-  //       userController.user.value.id
-  //     ], // Depending on your model, adjust as necessary
-  //     participantBudgets: [
-  //       ParticipantBudget(
-  //           participantId: userController.user.value.id,
-  //           budget: double.parse(budget.text))
-  //     ],
-  //     description: description.text,
-  //   );
-
-  //   updateTrip(updatedTrip);
-  // }
 
   void onEditSubmit(String tripId) async {
     TravelPlanModel originalTrip = await fetchTripById(tripId);
@@ -252,8 +236,6 @@ class TripController extends GetxController {
     }
   }
 
-  // In your TripController:
-
   //fetch trip data by id
   Future<TravelPlanModel> fetchTripById(String tripId) async {
     try {
@@ -266,21 +248,21 @@ class TripController extends GetxController {
   }
 
   //fetch user names by id
-
   void fetchAndStoreUserName(String userId) async {
-    if (!userNames.containsKey(userId)) { // If username is not already fetched
+    if (!userNames.containsKey(userId)) {
+      // If username is not already fetched
       userNames[userId] = RxnString();
       try {
         UserModel user = await UserRepository().fetchUserById(userId);
         userNames[userId]!.value = user.username;
       } catch (e) {
         print("Error fetching user: $e");
-        userNames[userId]!.value = "Unknown"; // Set a default value in case of an error
+        userNames[userId]!.value =
+            "Unknown"; // Set a default value in case of an error
       }
     }
   }
 
-  // Method to get the username for a given userId
   // Get the username for the given userId
   String? getUserName(String userId) {
     if (userNames.containsKey(userId)) {
@@ -289,52 +271,47 @@ class TripController extends GetxController {
     return null;
   }
 
-
-    
-
   // method to get total budget, debts and spendings for a trip
-
-  Future <void> loadBudgetsForUserTrips(String userId) async {
-    var tripsSnapshot = await FirebaseFirestore.instance.collection('Trips').get();
+  Future<void> loadBudgetsForUserTrips(String userId) async {
+    var tripsSnapshot =
+        await FirebaseFirestore.instance.collection('Trips').get();
     for (var tripDoc in tripsSnapshot.docs) {
       String tripId = tripDoc.id;
       List participantBudgets = tripDoc.data()['participantBudgets'];
       var participantBudget = participantBudgets.firstWhere(
-        (budget) => budget['participantId'] == userId,
-        orElse: () => null
-      );
+          (budget) => budget['participantId'] == userId,
+          orElse: () => null);
 
       if (participantBudget != null) {
         double spendings = participantBudget['spendings'] ?? 0;
-        Map<String, dynamic> debts = participantBudget['debts'] as Map<String, dynamic> ?? {};
+        Map<String, dynamic> debts =
+            participantBudget['debts'] as Map<String, dynamic> ?? {};
         // Sum up all debts for this user
-        double totalDebts = debts.values.fold(0.0, (sum, debt) => sum + (debt ?? 0.0));
+        double totalDebts =
+            debts.values.fold(0.0, (sum, debt) => sum + (debt ?? 0.0));
 
         // Update spendings to include debts
         spendings += totalDebts;
 
         userTripBudgets[tripId] = ParticipantBudget(
-          participantId: participantBudget['participantId'],
-          budget: participantBudget['budget'],
-          spendings: spendings
-        );
+            participantId: participantBudget['participantId'],
+            budget: participantBudget['budget'],
+            spendings: spendings);
       }
     }
   }
-  
 
   // remove this method from the controller if needed
-Future<void> fetchParticipantBudget(String tripId, String currentUserId) async {
-  // Mark the function body as asynchronous with the 'async' keyword
-  try {
-    ParticipantBudget currentParticipantBudget = await tripRepository.fetchBudgetForParticipant(tripId, currentUserId);
-    // Use the fetched participant budget here
-    print(currentParticipantBudget);
-  } catch (e) {
-    // Handle any potential errors here
-    print('Error fetching participant budget: $e');
+  Future<void> fetchParticipantBudget(
+      String tripId, String currentUserId) async {
+    try {
+      ParticipantBudget currentParticipantBudget =
+          await tripRepository.fetchBudgetForParticipant(tripId, currentUserId);
+      // Use the fetched participant budget here
+      print(currentParticipantBudget);
+    } catch (e) {
+      // Handle any potential errors here
+      print('Error fetching participant budget: $e');
+    }
   }
 }
-
-}
-

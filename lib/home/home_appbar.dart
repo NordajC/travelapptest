@@ -24,7 +24,5 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget{
   }
 
     @override
-  // Here you should return the preferred size of CustomAppBar.
-  // This is an example, adjust the size according to your CustomAppBar's implementation.
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

@@ -8,7 +8,7 @@ import 'package:travelapptest/trip/trip_itinerary/itinerary_controller.dart';
 class AddActivityForm extends StatefulWidget {
   final String tripId;
   final String
-      date; // This should be the ISO string of the date for which you are adding the activity
+      date; 
 
   AddActivityForm({Key? key, required this.tripId, required this.date})
       : super(key: key);
@@ -27,7 +27,7 @@ class _AddActivityFormState extends State<AddActivityForm> {
   // final TextEditingController _paidByController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  // DateTime get selectedDate => DateFormat("yyyy-MM-dd").parse(widget.date);
+
 
   DateTime selectedDate = DateTime.now(); // Initialize selectedDate with the current date and time
 
@@ -91,10 +91,6 @@ class _AddActivityFormState extends State<AddActivityForm> {
   @override
   void initState() {
     super.initState();
-    // Fetch initial data if needed
-    // Example: load additional details about the trip or set default values
-
-    // selectedDate = widget.date.toString();
 
     selectedDate = DateTime.parse(widget.date);
     print('Received date: ${widget.date}');
@@ -269,37 +265,4 @@ class _AddActivityFormState extends State<AddActivityForm> {
     }
   }
 
-  // void addActivity() {
-  //   if (_formKey.currentState!.validate()) {
-  //     // Convert text to DateTime objects for comparison
-  //     DateTime startTime = DateTime.parse(_startTimeController.text);
-  //     DateTime endTime = DateTime.parse(_endTimeController.text);
-
-  //     // Check if the start time is after the end time
-  //     if (startTime.isAfter(endTime)) {
-  //       Get.snackbar("Error", "The end time must be after the start time.");
-  //       return; // Stop the submission process
-  //     }
-
-  //     ItineraryItem newItem = ItineraryItem(
-  //       id: DateTime.now()
-  //           .millisecondsSinceEpoch
-  //           .toString(), // Unique ID for each activity
-  //       name: _nameController.text,
-  //       startTime: startTime,
-  //       endTime: endTime,
-  //       location: _locationController.text,
-  //       // price: double.parse(_priceController.text),
-  //       // paidBy: _paidByController.text,
-  //       category: _selectedCategory,
-  //       notes: _notesController.text,
-  //     );
-
-  //     // Save to Firestore under the specific trip and date
-  //     itineraryController.createItineraryItem(newItem, widget.date);
-  //     Get.back(); // Optionally navigate back or clear the form
-  //   }
-  // }
-
-  // Function to create a new itinerary item with time combined with the selected date
 }

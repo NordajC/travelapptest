@@ -30,7 +30,6 @@ class ExpenseOverviewPage extends StatelessWidget {
       if (expenseController.categoryExpenses.isEmpty) {
         return const CircularProgressIndicator(); // loading indicator you prefer
       } else {
-        // Use expenseController.categoryExpenses to build UI
         return Scaffold(
           appBar: AppBar(
             title: const Text('Expense Overview'),

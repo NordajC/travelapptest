@@ -71,34 +71,6 @@ class UserController extends GetxController {
     }
   }
 
-  //upload user profile pic
-  // uploadUserProfilePicture() async{
-  //   final image = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 70, maxHeight: 512, maxWidth: 512);
-
-  //   if(image != null){
-  //     try{
-  //       final imageUrl = await userRepository.uploadImage("Users/Images/Profile", image);
-
-  //       //update user image data
-  //       Map<String, dynamic> json = {'profilePicture': imageUrl};
-
-  //       await userRepository.updateSingleField(json);
-
-  //       user.value.profilePicture = imageUrl;
-
-  //       Get.snackbar("Sucess", "Profile picture updated successfully.", snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
-  //     }
-  //     catch(e){
-  //       Get.snackbar(
-  //         'Error', // Title
-  //         e.toString(), // Message
-  //         snackPosition: SnackPosition.BOTTOM,
-  //         backgroundColor: Colors.red,
-  //         colorText: Colors.white,
-  //       );
-  //     }
-  //   }
-  // }
 
   uploadUserProfilePicture() async {
     XFile? image;

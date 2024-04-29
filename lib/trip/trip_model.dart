@@ -52,68 +52,6 @@ class ParticipantBudget {
   }
 }
 
-//original working itinerary item model
-
-// class ItineraryItem {
-//   final String id;
-//   String name;
-//   DateTime startTime;
-//   DateTime endTime;
-//   String location;
-//   double? price;
-//   String? paidBy;
-//   Map<String, int> votes; // User IDs and their votes
-//   String suggestedBy;
-//   String status; // e.g., "pending", "approved", "rejected"
-//   String? category;
-//   String? notes;
-
-//   ItineraryItem({
-//     required this.id,
-//     required this.name,
-//     required this.startTime,
-//     required this.endTime,
-//     required this.location,
-//     this.price,
-//     this.paidBy,
-//     this.votes = const {},
-//     this.suggestedBy = '',
-//     this.status = 'pending',
-//     this.category,
-//     this.notes,
-//   });
-
-//   Map<String, dynamic> toJson() => {
-//         'id': id,
-//         'name': name,
-//         'startTime': startTime.toIso8601String(),
-//         'endTime': endTime.toIso8601String(),
-//         'location': location,
-//         'price': price,
-//         'paidBy': paidBy,
-//         'votes': votes,
-//         'suggestedBy': suggestedBy,
-//         'status': status,
-//         'category': category,
-//         'notes': notes,
-//       };
-
-//   static ItineraryItem fromJson(Map<String, dynamic> json) => ItineraryItem(
-//         id: json['id'],
-//         name: json['name'],
-//         startTime: DateTime.parse(json['startTime']),
-//         endTime: DateTime.parse(json['endTime']),
-//         location: json['location'],
-//         price: json['price']?.toDouble(), // Handle optional double
-//         paidBy: json['paidBy'], // Optional
-//         votes: Map<String, int>.from(json['votes'] ?? {}),
-//         suggestedBy: json['suggestedBy'] ?? '',
-//         status: json['status'] ?? 'pending',
-//         category: json['category'],
-//         notes: json['notes'],
-//       );
-// }
-
 class ItineraryItem {
   final String id;
   String name;

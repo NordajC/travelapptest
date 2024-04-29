@@ -30,16 +30,19 @@ class TripRepository extends GetxService {
   //fetches all trips that contain the user as a participant
   Future<List<TravelPlanModel>> fetchUserTrips(String userId) async {
     try {
+      // Query trips where the participantIds array contains the user ID
       final QuerySnapshot participantTripsSnapshot = await _db
           .collection("Trips")
           .where('participantIds', arrayContains: userId)
           .get();
 
+      // Convert the query snapshot to a list of TravelPlanModel objects
       final allTrips = participantTripsSnapshot.docs
           .map((doc) => TravelPlanModel.fromSnapshot(
               doc as DocumentSnapshot<Map<String, dynamic>>))
           .toList();
 
+      // Return the list of trips
       return allTrips;
     } catch (e) {
       throw Exception('Error fetching user trips: $e');
@@ -69,7 +72,7 @@ class TripRepository extends GetxService {
       // Log the error, or handle it in a way that's appropriate for your app
       print('Error fetching trip: $e');
       throw Exception(
-          'Error fetching trip: $e'); // Optionally rethrow to handle it further up the call stack
+          'Error fetching trip: $e'); //  rethrow to handle it further up the call stack
     }
   }
 
@@ -171,11 +174,4 @@ class TripRepository extends GetxService {
     return participantBudget;
   }
 
-  // Future<double> fetchTotalSpendingsForParticipant(
-  //     String tripId, String participantId) async {
-  //   ParticipantBudget participantBudget =
-  //       await fetchBudgetForParticipant(tripId, participantId);
-  //   return participantBudget
-  //       .spendings; // Returns the total spendings for the participant.
-  // }
 }

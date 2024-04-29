@@ -40,7 +40,7 @@ class HomePage extends StatelessWidget {
             title: "Settings",
             icon: Icons.settings,
             onTap: () {
-              // Implement navigation to settings
+              //  navigation to settings
             },
           ),
           CustomDrawerItem(
@@ -50,7 +50,7 @@ class HomePage extends StatelessWidget {
               try {
                 await controller.logout();
               } catch (e) {
-                // Handle the error, such as showing a Snackbar with the error message
+                // Handle the error
                 final scaffold = ScaffoldMessenger.of(context);
                 scaffold.showSnackBar(
                   SnackBar(
@@ -70,7 +70,6 @@ class HomePage extends StatelessWidget {
         if (tripController.trips.isEmpty) {
           return Center(child: Text('No trips found.'));
         }
-
         return ListView.builder(
           itemCount: tripController.trips.length,
           itemBuilder: (context, index) {
@@ -95,7 +94,7 @@ class HomePage extends StatelessWidget {
                         orElse: () =>
                             ParticipantBudget(participantId: '', budget: 0))
                     .budget,
-                tripSpent: 0, // Implement logic to calculate amount spent
+                tripSpent: 0, 
                 // tripImageUrl: trip.imageUrl, // If you have images for trips
               ),
             );
@@ -108,7 +107,8 @@ class HomePage extends StatelessWidget {
           Get.to(() => CreateTripForm(), binding: TripBinding());
         },
         tooltip: 'Add Trip',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Color(0xFF5E6EFF),
       ),
     );
   }
@@ -118,10 +118,9 @@ class TravelCard extends StatelessWidget {
   final String tripName;
   final String tripStartDate;
   final String tripEndDate;
-  final double tripBudget; // Assuming this is the total budget
-  final double tripSpent; // Assuming this is the amount spent from the budget
+  final double tripBudget; 
+  final double tripSpent; 
   final String tripImageUrl;
-  // Include additional fields if necessary, like an image path or a unique tag for Hero animations
   final String tripId;
 
   const TravelCard({
@@ -132,8 +131,7 @@ class TravelCard extends StatelessWidget {
     required this.tripBudget,
     required this.tripSpent,
     required this.tripId,
-    this.tripImageUrl = '', // Change this later on to the actual image path
-    // Additional parameters can be added here
+    this.tripImageUrl = '', 
   });
 
   String formatTripDates(DateTime startDate, DateTime endDate) {
@@ -308,7 +306,7 @@ class TravelCard extends StatelessWidget {
                     ],
                   ),
 
-                  SizedBox(height: 4), // Adds a small space between elements
+                  SizedBox(height: 4), 
 
                   // Budget progress bar
                   ClipRRect(
@@ -324,7 +322,7 @@ class TravelCard extends StatelessWidget {
                           : Colors.red, // Change color based on spending percentage
                     ),
                   ),
-                  SizedBox(height: 8), // Adds a small space between elements
+                  SizedBox(height: 8), 
                   Row(
                     children: [
                       Text(
@@ -334,12 +332,12 @@ class TravelCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(width: 8), // Adds a small space between elements
+                      SizedBox(width: 8), 
                       if (isOverBudget == true)
                         Row(
                           children: [
                             Icon(Icons.warning_rounded, color: Colors.red, size: 18,),
-                            SizedBox(width: 4), // Adds a small space between elements
+                            SizedBox(width: 4), 
                             Text(
                               'Overbudget',
                               style: TextStyle(

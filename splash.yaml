@@ -1,9 +1,16 @@
 flutter_native_splash:
   color: "#ffffff"
-  image: ./assets/bond.png
+  # image: ./assets/bond.
+  image: ./assets/Nextrip.png
 
 android:
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: ./assets/bond.png
+  image: ./assets/Nextrip.png
+  # adaptive_icon_foreground: ./assets/bond.png
 
-web: false
+
+web: 
+  image: ./assets/Nextrip.png
+  # image: ./assets/bond.png
+  # color: "#42a5f5"
+  # color: "#ffffff"

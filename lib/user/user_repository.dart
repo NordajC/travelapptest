@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:travelapptest/authentication_repository.dart';
 import 'package:travelapptest/user/user_model.dart';
 
-//delete here
+
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart'
     show kIsWeb; // To determine if the current platform is web
@@ -80,21 +80,6 @@ class UserRepository extends GetxController {
   }
 
   //upload image
-  // Future<String> uploadImage(String path, XFile image) async{
-  //   try{
-  //     //referencing the path of an image using a unique name in firebase storage
-  //     final ref = FirebaseStorage.instance.ref(path).child(image.name);
-  //     //uploads an image file to a specified location in your Firebase Cloud Storage
-  //     await ref.putFile(File(image.path));
-
-  //     //get url of uploaded image from firebase storage
-  //     final url = await ref.getDownloadURL();
-  //     return url;
-  //   }
-  //   catch(e){
-  //     throw 'Something went wrong. Please try again.';
-  //   }
-  // }
 
   Future<String> uploadImage(String path, XFile image) async {
     try {
@@ -134,9 +119,9 @@ class UserRepository extends GetxController {
       case 'jpg':
       case 'jpeg':
         return 'image/jpeg';
-      // Add more cases for other image types as needed
+  
       default:
-        return 'application/octet-stream'; // Use a generic binary stream type or throw an error
+        return 'application/octet-stream'; //  throw an error
     }
   }
 

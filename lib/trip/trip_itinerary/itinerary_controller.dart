@@ -32,22 +32,9 @@ class ItineraryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // You may want to load itinerary items when the controller is initialized.
-    // For instance, fetch itinerary items for a specific trip here.
-    // loadItineraryItems(tripId);
   }
 
-  // Call this method when you want to fetch itinerary items, such as after user login, or trip selection.
-  // void loadItineraryItems(String tripId) async {
-  //   isLoading.value = true;
-  //   try {
-  //     var items = await itineraryRepository.loadItineraryItems(tripId);
-  //     itineraryItems.assignAll(items);
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to load itinerary items: $e');
-  //   }
-  // }
-
+  // Load itinerary items for a specific trip and date
   void loadItineraryItems(String tripId, DateTime selectedDate) async {
     isLoading.value = true;
     try {
@@ -67,56 +54,6 @@ class ItineraryController extends GetxController {
       isLoading.value = false;
     }
   }
-  //not this one
-  // void createItineraryItem(ItineraryItem newItem, String date) async {
-  //   try {
-  //     await itineraryRepository.createItineraryItem(tripId, date, newItem);
-  //     itineraryItems.add(newItem);
-  //     Get.snackbar('Success', 'Itinerary item created successfully');
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to create itinerary item: $e');
-  //   }
-  // }
-
-  //previous createItineraryItem working
-  // void createItineraryItem(
-  //     String tripId, ItineraryItem newItem, String date) async {
-  //   try {
-  //     await itineraryRepository.createItineraryItem(tripId, date, newItem);
-  //     itineraryItems.add(newItem);
-  //     Get.snackbar('Success', 'Itinerary item created successfully');
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to create itinerary item: $e');
-  //   }
-  // }
-
-  //previous updateItineraryItem working
-  // void updateItineraryItem(String tripId, ItineraryItem updatedItem) async {
-  //   try {
-  //     await itineraryRepository.updateItineraryItem(tripId, updatedItem);
-  //     int index =
-  //         itineraryItems.indexWhere((item) => item.id == updatedItem.id);
-  //     if (index != -1) {
-  //       itineraryItems[index] = updatedItem;
-  //       itineraryItems.refresh();
-  //       Get.snackbar('Success', 'Itinerary item updated successfully');
-  //     }
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to update itinerary item: $e');
-  //   }
-  // }
-
-  //previous deleteItineraryItem working
-  // void deleteItineraryItem(
-  //     String tripId, String itemId, DateTime itemDate) async {
-  //   try {
-  //     await itineraryRepository.deleteItineraryItem(tripId, itemId, itemDate);
-  //     itineraryItems.removeWhere((item) => item.id == itemId);
-  //     Get.snackbar('Success', 'Itinerary item deleted successfully');
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to delete itinerary item: $e');
-  //   }
-  // }
 
   void createItineraryItem(
       String tripId, ItineraryItem newItem, String date) async {
@@ -234,7 +171,6 @@ class ItineraryController extends GetxController {
 
   void handleDebtSettlement(
       String tripId, String debtorId, String creditorId, double paymentAmount) {
-    // Use complex function to adjust debts appropriately
     itineraryRepository.updateBudgetAndDebt(
         tripId, creditorId, debtorId, paymentAmount, false);
   }
@@ -246,23 +182,18 @@ class ItineraryController extends GetxController {
     double expenseAmount,
     DateTime selectedDate,
   ) async {
-    // First, update the itinerary item itself.
+
     await itineraryRepository.updateItineraryItem(tripId, updatedItem);
     loadItineraryItems(tripId, selectedDate);
 
-    // After updating the itinerary item, update the participant's spendings.
-    // handles the logic here
-    // directly in the controller if it's simple enough.
-    // await updateParticipantSpendings(tripId, payerId, expenseAmount);
   }
 
   //fetch itinerary items by a specific item id
-
   Future<void> fetchItineraryItemById(
       String tripId, DateTime date, String itemId) async {
     try {
       isLoading(
-          true); // If using GetX, to notify observers that loading has started
+          true); 
 
       print(" UP HERE Fetching itinerary item: $itemId");
 
